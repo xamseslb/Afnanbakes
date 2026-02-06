@@ -139,7 +139,7 @@ export default function Index() {
       </header>
 
       {/* Main content */}
-      <main className={`pt-${currentStep > 1 && currentStep < TOTAL_STEPS ? '32' : '20'}`}>
+      <main className={currentStep > 1 && currentStep < TOTAL_STEPS ? 'pt-32' : 'pt-24'}>
         <div className="container mx-auto min-h-[calc(100vh-5rem)]">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
