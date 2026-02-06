@@ -1,295 +1,200 @@
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, Star, MapPin, Clock } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Layout } from '@/components/layout/Layout';
-import { ProductCard } from '@/components/ProductCard';
-import { CategoryCard } from '@/components/CategoryCard';
-import { categories, getFeaturedProducts } from '@/lib/products';
-import heroBakery from '@/assets/hero-bakery.jpg';
+import { ProgressIndicator } from '@/components/ordering/ProgressIndicator';
+import { LandingSection } from '@/components/ordering/LandingSection';
+import { OccasionSection } from '@/components/ordering/OccasionSection';
+import { ProductSection } from '@/components/ordering/ProductSection';
+import { DetailsSection } from '@/components/ordering/DetailsSection';
+import { SummarySection } from '@/components/ordering/SummarySection';
+import { SuccessSection } from '@/components/ordering/SuccessSection';
+import { OrderData, Occasion, ProductType } from '@/lib/orderTypes';
 
-const featuredProducts = getFeaturedProducts();
+const TOTAL_STEPS = 6;
 
-const testimonials = [
-  {
-    name: 'Sara H.',
-    text: 'Beste kakene i Oslo! Smaken er helt fantastisk, og servicen er alltid upåklagelig.',
-    rating: 5,
-  },
-  {
-    name: 'Ahmed M.',
-    text: 'Sambosa som minner meg om hjemme. Autentisk smak og alltid ferskbakt.',
-    rating: 5,
-  },
-  {
-    name: 'Emma L.',
-    text: 'Cupcakene deres er perfekte til enhver anledning. Anbefales på det varmeste!',
-    rating: 5,
-  },
-];
+const initialOrderData: OrderData = {
+  occasion: null,
+  productType: null,
+  description: '',
+  ideas: '',
+  cakeName: '',
+  cakeText: '',
+  quantity: '',
+  images: [],
+};
 
 export default function Index() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const [orderData, setOrderData] = useState<OrderData>(initialOrderData);
+
+  const goToStep = useCallback((step: number) => {
+    setDirection(step > currentStep ? 'forward' : 'backward');
+    setCurrentStep(step);
+  }, [currentStep]);
+
+  const goNext = useCallback(() => {
+    setDirection('forward');
+    setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+  }, []);
+
+  const goBack = useCallback(() => {
+    setDirection('backward');
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  }, []);
+
+  const handleOccasionSelect = (occasion: Occasion) => {
+    setOrderData((prev) => ({ ...prev, occasion }));
+    setTimeout(goNext, 300);
+  };
+
+  const handleProductSelect = (productType: ProductType) => {
+    setOrderData((prev) => ({ ...prev, productType }));
+    setTimeout(goNext, 300);
+  };
+
+  const handleDetailsUpdate = (data: Partial<OrderData>) => {
+    setOrderData((prev) => ({ ...prev, ...data }));
+  };
+
+  const handleConfirm = () => {
+    // Here you would send the order to your backend
+    console.log('Order confirmed:', orderData);
+    goNext();
+  };
+
+  const handleNewOrder = () => {
+    setOrderData(initialOrderData);
+    setDirection('backward');
+    setCurrentStep(1);
+  };
+
+  const pageVariants = {
+    enter: (dir: string) => ({
+      x: dir === 'forward' ? 100 : -100,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: string) => ({
+      x: dir === 'forward' ? -100 : 100,
+      opacity: 0,
+    }),
+  };
+
   return (
-    <Layout>
-      {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img
-            src={heroBakery}
-            alt="AfnanBakes bakery"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-transparent" />
-        </div>
-
-        {/* Content */}
-        <div className="container relative mx-auto px-4 py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-2xl"
-          >
-            <span className="mb-4 inline-block rounded-full bg-primary/20 px-4 py-1.5 text-sm font-medium text-primary-foreground backdrop-blur-sm">
-              Håndlaget i Oslo
-            </span>
-            <h1 className="font-serif text-5xl font-bold leading-tight tracking-tight text-card md:text-6xl lg:text-7xl">
-              Smak av{' '}
-              <span className="text-gold-light">tradisjon</span>{' '}
-              og kjærlighet
-            </h1>
-            <p className="mt-6 text-lg text-card/80 md:text-xl">
-              Fra klassiske kaker til autentisk somalisk bakst. Hver smak er en
-              opplevelse, bakt med lidenskap og de fineste ingrediensene.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link to="/shop">
-                <Button size="lg" className="gap-2 rounded-full text-base">
-                  Utforsk butikken
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/cakes">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full border-card/30 text-base text-card hover:bg-card/10 hover:text-card"
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Back button */}
+            <div className="w-24">
+              {currentStep > 1 && currentStep < TOTAL_STEPS && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
                 >
-                  Se kaker
-                </Button>
-              </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={goBack}
+                    className="gap-1"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Tilbake
+                  </Button>
+                </motion.div>
+              )}
             </div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Categories Section */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="font-serif text-4xl font-bold text-foreground">
-              Våre kategorier
-            </h2>
-            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              Oppdag vårt brede utvalg av håndlagde bakverk, fra klassiske vestlige
-              favoritter til autentisk somalisk tradisjon.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {categories.slice(0, 3).map((category, index) => (
-              <CategoryCard key={category.id} category={category} index={index} />
-            ))}
-          </div>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
-            {categories.slice(3).map((category, index) => (
-              <CategoryCard key={category.id} category={category} index={index + 3} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="font-serif text-4xl font-bold text-foreground">
-              Populære valg
-            </h2>
-            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-              Kundenes favoritter, ferskbakt hver dag.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="mt-12 text-center"
-          >
-            <Link to="/shop">
-              <Button variant="outline" size="lg" className="gap-2 rounded-full">
-                Se alle produkter
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* About / Info Section */}
-      <section className="py-20 bg-primary/5">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
+            {/* Logo */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-serif text-xl font-bold text-foreground"
             >
-              <h2 className="font-serif text-4xl font-bold text-foreground">
-                Bakt med <span className="text-primary">lidenskap</span>
-              </h2>
-              <p className="mt-6 text-muted-foreground leading-relaxed">
-                AfnanBakes ble startet med en enkel drøm: å dele smaken av hjemmelaget
-                bakverk med Oslo. Vi kombinerer vestlige klassikere med autentiske
-                somaliske oppskrifter som har gått i generasjoner.
-              </p>
-              <p className="mt-4 text-muted-foreground leading-relaxed">
-                Hver kake, cupcake og sambosa er laget for hånd med de beste
-                ingrediensene. Ingen snarveier, bare ekte smak.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-6">
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-6 w-6 text-primary mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-foreground">Lokalt</h4>
-                    <p className="text-sm text-muted-foreground">Oslo, Norge</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="h-6 w-6 text-primary mt-0.5" />
-                  <div>
-                    <h4 className="font-semibold text-foreground">Ferskbakt</h4>
-                    <p className="text-sm text-muted-foreground">Hver dag</p>
-                  </div>
-                </div>
-              </div>
+              Afnan<span className="text-primary">Bakes</span>
             </motion.div>
 
+            {/* Spacer */}
+            <div className="w-24" />
+          </div>
+        </div>
+
+        {/* Progress indicator */}
+        {currentStep > 1 && currentStep < TOTAL_STEPS && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="pb-4"
+          >
+            <ProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+          </motion.div>
+        )}
+      </header>
+
+      {/* Main content */}
+      <main className={`pt-${currentStep > 1 && currentStep < TOTAL_STEPS ? '32' : '20'}`}>
+        <div className="container mx-auto min-h-[calc(100vh-5rem)]">
+          <AnimatePresence mode="wait" custom={direction}>
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="grid grid-cols-2 gap-4"
+              key={currentStep}
+              custom={direction}
+              variants={pageVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                duration: 0.4,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
             >
-              <div className="aspect-square rounded-2xl overflow-hidden">
-                <img
-                  src={heroBakery}
-                  alt="Bakery interior"
-                  className="h-full w-full object-cover"
+              {currentStep === 1 && (
+                <LandingSection onStart={goNext} />
+              )}
+
+              {currentStep === 2 && (
+                <OccasionSection
+                  selected={orderData.occasion}
+                  onSelect={handleOccasionSelect}
                 />
-              </div>
-              <div className="aspect-square rounded-2xl overflow-hidden mt-8">
-                <img
-                  src={heroBakery}
-                  alt="Fresh baked goods"
-                  className="h-full w-full object-cover"
+              )}
+
+              {currentStep === 3 && (
+                <ProductSection
+                  selected={orderData.productType}
+                  onSelect={handleProductSelect}
                 />
-              </div>
+              )}
+
+              {currentStep === 4 && (
+                <DetailsSection
+                  orderData={orderData}
+                  onUpdate={handleDetailsUpdate}
+                  onContinue={goNext}
+                />
+              )}
+
+              {currentStep === 5 && (
+                <SummarySection
+                  orderData={orderData}
+                  onEdit={() => goToStep(4)}
+                  onConfirm={handleConfirm}
+                />
+              )}
+
+              {currentStep === 6 && (
+                <SuccessSection onNewOrder={handleNewOrder} />
+              )}
             </motion.div>
-          </div>
+          </AnimatePresence>
         </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="font-serif text-4xl font-bold text-foreground">
-              Hva kundene sier
-            </h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="rounded-2xl bg-card p-8 shadow-soft"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-5 w-5 fill-primary text-primary"
-                    />
-                  ))}
-                </div>
-                <p className="text-muted-foreground italic">
-                  "{testimonial.text}"
-                </p>
-                <p className="mt-4 font-semibold text-foreground">
-                  {testimonial.name}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-primary">
-        <div className="container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-serif text-4xl font-bold text-primary-foreground">
-              Klar for noe søtt?
-            </h2>
-            <p className="mt-4 text-primary-foreground/80 max-w-xl mx-auto">
-              Bestill nå og hent i butikken. Vi baker alt på bestilling for
-              maksimal ferskhet.
-            </p>
-            <Link to="/shop" className="mt-8 inline-block">
-              <Button
-                size="lg"
-                variant="secondary"
-                className="gap-2 rounded-full text-base"
-              >
-                Start bestilling
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-    </Layout>
+      </main>
+    </div>
   );
 }
