@@ -10,12 +10,17 @@ import { DetailsSection } from '@/components/ordering/DetailsSection';
 import { SummarySection } from '@/components/ordering/SummarySection';
 import { SuccessSection } from '@/components/ordering/SuccessSection';
 import { OrderData, Occasion, ProductType } from '@/lib/orderTypes';
+import { submitOrder } from '@/lib/orderService';
+import { useToast } from '@/hooks/use-toast';
 
 const TOTAL_STEPS = 6;
 
 const initialOrderData: OrderData = {
   occasion: null,
   productType: null,
+  customerName: '',
+  customerEmail: '',
+  customerPhone: '',
   description: '',
   ideas: '',
   cakeName: '',
@@ -28,6 +33,9 @@ export default function Index() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [orderData, setOrderData] = useState<OrderData>(initialOrderData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderRef, setOrderRef] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const goToStep = useCallback((step: number) => {
     setDirection(step > currentStep ? 'forward' : 'backward');
@@ -58,14 +66,26 @@ export default function Index() {
     setOrderData((prev) => ({ ...prev, ...data }));
   };
 
-  const handleConfirm = () => {
-    // Here you would send the order to your backend
-    console.log('Order confirmed:', orderData);
-    goNext();
+  const handleConfirm = async () => {
+    setIsSubmitting(true);
+    const result = await submitOrder(orderData);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      setOrderRef(result.orderRef || null);
+      goNext();
+    } else {
+      toast({
+        title: 'Noe gikk galt',
+        description: 'Bestillingen kunne ikke sendes. Prøv igjen senere.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleNewOrder = () => {
     setOrderData(initialOrderData);
+    setOrderRef(null);
     setDirection('backward');
     setCurrentStep(1);
   };
@@ -185,11 +205,12 @@ export default function Index() {
                   orderData={orderData}
                   onEdit={() => goToStep(4)}
                   onConfirm={handleConfirm}
+                  isSubmitting={isSubmitting}
                 />
               )}
 
               {currentStep === 6 && (
-                <SuccessSection onNewOrder={handleNewOrder} />
+                <SuccessSection orderRef={orderRef} onNewOrder={handleNewOrder} />
               )}
             </motion.div>
           </AnimatePresence>
