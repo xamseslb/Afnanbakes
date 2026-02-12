@@ -5,6 +5,7 @@ import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
 import categorySambosa from '@/assets/category-sambosa.jpg';
+import categorySabayad from '@/assets/category-sabayad.jpg';
 
 interface ProductSectionProps {
   selected: ProductType | null;
@@ -17,6 +18,7 @@ const products: { id: ProductType; image: string }[] = [
   { id: 'cakepops', image: categoryCupcakes },
   { id: 'cupcakes', image: categoryCupcakes },
   { id: 'sambosa', image: categorySambosa },
+  { id: 'sabayad', image: categorySabayad },
 ];
 
 export function ProductSection({ selected, onSelect }: ProductSectionProps) {
@@ -64,7 +66,7 @@ export function ProductSection({ selected, onSelect }: ProductSectionProps) {
                   : "bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent"
               )} />
             </div>
-            
+
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <h3 className={cn(
                 "font-semibold text-lg transition-colors duration-300",

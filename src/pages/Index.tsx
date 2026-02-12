@@ -107,59 +107,37 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Back button */}
-            <div className="w-24">
-              {currentStep > 1 && currentStep < TOTAL_STEPS && (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
+
+      {/* Back button + Progress indicator (for ordering steps) */}
+      {currentStep > 1 && currentStep < TOTAL_STEPS && (
+        <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center h-12">
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={goBack}
+                  className="gap-1"
                 >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={goBack}
-                    className="gap-1"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Tilbake
-                  </Button>
-                </motion.div>
-              )}
+                  <ArrowLeft className="w-4 h-4" />
+                  Tilbake
+                </Button>
+              </motion.div>
             </div>
-
-            {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-serif text-xl font-bold text-foreground"
-            >
-              Afnan<span className="text-primary">Bakes</span>
-            </motion.div>
-
-            {/* Spacer */}
-            <div className="w-24" />
+            <div className="pb-3">
+              <ProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+            </div>
           </div>
         </div>
-
-        {/* Progress indicator */}
-        {currentStep > 1 && currentStep < TOTAL_STEPS && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="pb-4"
-          >
-            <ProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
-          </motion.div>
-        )}
-      </header>
+      )}
 
       {/* Main content */}
-      <main className={currentStep > 1 && currentStep < TOTAL_STEPS ? 'pt-32' : 'pt-24'}>
+      <main className={currentStep > 1 && currentStep < TOTAL_STEPS ? 'pt-4' : 'pt-8'}>
         <div className="container mx-auto min-h-[calc(100vh-5rem)]">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div

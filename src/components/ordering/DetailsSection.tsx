@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, User, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +27,7 @@ export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSecti
     onUpdate({ images: newImages });
   };
 
-  const isValid = orderData.quantity.trim() !== '';
+  const isValid = orderData.quantity.trim() !== '' && orderData.customerName.trim() !== '' && orderData.customerEmail.trim() !== '' && orderData.customerPhone.trim() !== '';
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -50,6 +50,52 @@ export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSecti
         transition={{ delay: 0.1 }}
         className="space-y-6 bg-card rounded-2xl p-6 md:p-8 shadow-soft"
       >
+        {/* Customer Contact Info */}
+        <div className="space-y-4 pb-6 border-b border-border">
+          <h3 className="font-serif text-lg font-semibold text-foreground">Kontaktinformasjon</h3>
+
+          <div className="space-y-2">
+            <Label htmlFor="customerName" className="text-base flex items-center gap-2">
+              <User className="w-4 h-4" /> Fullt navn *
+            </Label>
+            <Input
+              id="customerName"
+              placeholder="Ditt fulle navn"
+              value={orderData.customerName}
+              onChange={(e) => onUpdate({ customerName: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="customerEmail" className="text-base flex items-center gap-2">
+              <Mail className="w-4 h-4" /> E-post *
+            </Label>
+            <Input
+              id="customerEmail"
+              type="email"
+              placeholder="din@epost.no"
+              value={orderData.customerEmail}
+              onChange={(e) => onUpdate({ customerEmail: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="customerPhone" className="text-base flex items-center gap-2">
+              <Phone className="w-4 h-4" /> Telefon *
+            </Label>
+            <Input
+              id="customerPhone"
+              type="tel"
+              placeholder="+47 XXX XX XXX"
+              value={orderData.customerPhone}
+              onChange={(e) => onUpdate({ customerPhone: e.target.value })}
+              required
+            />
+          </div>
+        </div>
+
         {/* Description */}
         <div className="space-y-2">
           <Label htmlFor="description" className="text-base">
@@ -124,7 +170,7 @@ export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSecti
         {/* Image Upload */}
         <div className="space-y-3">
           <Label className="text-base">Inspirasjonsbilder (valgfritt)</Label>
-          
+
           <input
             ref={fileInputRef}
             type="file"
@@ -133,7 +179,7 @@ export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSecti
             onChange={handleImageUpload}
             className="hidden"
           />
-          
+
           <Button
             type="button"
             variant="outline"

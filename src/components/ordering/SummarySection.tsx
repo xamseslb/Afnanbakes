@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Edit2, Check } from 'lucide-react';
+import { Edit2, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OrderData, occasionLabels, productLabels } from '@/lib/orderTypes';
 
@@ -7,10 +7,23 @@ interface SummarySectionProps {
   orderData: OrderData;
   onEdit: () => void;
   onConfirm: () => void;
+  isSubmitting?: boolean;
 }
 
-export function SummarySection({ orderData, onEdit, onConfirm }: SummarySectionProps) {
+export function SummarySection({ orderData, onEdit, onConfirm, isSubmitting = false }: SummarySectionProps) {
   const summaryItems = [
+    {
+      label: 'Navn',
+      value: orderData.customerName,
+    },
+    {
+      label: 'E-post',
+      value: orderData.customerEmail,
+    },
+    {
+      label: 'Telefon',
+      value: orderData.customerPhone,
+    },
     {
       label: 'Anledning',
       value: orderData.occasion ? occasionLabels[orderData.occasion] : '-',
@@ -119,11 +132,15 @@ export function SummarySection({ orderData, onEdit, onConfirm }: SummarySectionP
           </Button>
           <Button
             onClick={onConfirm}
+            disabled={isSubmitting}
             className="flex-1 rounded-full gap-2"
             size="lg"
           >
-            <Check className="w-4 h-4" />
-            Bekreft bestilling
+            {isSubmitting ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Sender...</>
+            ) : (
+              <><Check className="w-4 h-4" /> Bekreft bestilling</>
+            )}
           </Button>
         </div>
       </motion.div>

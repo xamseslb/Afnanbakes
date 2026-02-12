@@ -1,9 +1,12 @@
 export type Occasion = 'bursdag' | 'bryllup' | 'babyshower' | 'ramadan' | 'annet';
-export type ProductType = 'kaker' | 'cookies' | 'cakepops' | 'cupcakes' | 'sambosa';
+export type ProductType = 'kaker' | 'cookies' | 'cakepops' | 'cupcakes' | 'sambosa' | 'sabayad';
 
 export interface OrderData {
   occasion: Occasion | null;
   productType: ProductType | null;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   description: string;
   ideas: string;
   cakeName: string;
@@ -26,4 +29,5 @@ export const productLabels: Record<ProductType, string> = {
   cakepops: 'Cake Pops',
   cupcakes: 'Cupcakes',
   sambosa: 'Sambosa',
+  sabayad: 'Sabayad',
 };
