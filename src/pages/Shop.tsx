@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { products, categories } from '@/lib/products';
@@ -15,7 +14,7 @@ export default function Shop() {
       : products.filter((p) => p.category === activeCategory);
 
   return (
-    <Layout>
+    <>
       {/* Header */}
       <section className="bg-secondary/30 py-16">
         <div className="container mx-auto px-4 text-center">
@@ -74,6 +73,6 @@ export default function Shop() {
           )}
         </div>
       </section>
-    </Layout>
+    </>
   );
 }

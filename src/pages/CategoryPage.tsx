@@ -1,6 +1,5 @@
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Layout } from '@/components/layout/Layout';
 import { ProductCard } from '@/components/ProductCard';
 import { getProductsByCategory, categories } from '@/lib/products';
 import { ProductCategory } from '@/lib/types';
@@ -27,18 +26,16 @@ export default function CategoryPage() {
 
   if (!categoryInfo) {
     return (
-      <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="font-serif text-3xl font-bold text-foreground">
-            Kategori ikke funnet
-          </h1>
-        </div>
-      </Layout>
+      <div className="container mx-auto px-4 py-20 text-center">
+        <h1 className="font-serif text-3xl font-bold text-foreground">
+          Kategori ikke funnet
+        </h1>
+      </div>
     );
   }
 
   return (
-    <Layout>
+    <>
       {/* Hero */}
       <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
@@ -82,6 +79,6 @@ export default function CategoryPage() {
           )}
         </div>
       </section>
-    </Layout>
+    </>
   );
 }
