@@ -12,7 +12,7 @@ const occasions: { id: Occasion; icon: React.ReactNode; description: string }[] 
   { id: 'bursdag', icon: <Cake className="w-8 h-8" />, description: 'Feir en spesiell dag' },
   { id: 'bryllup', icon: <Heart className="w-8 h-8" />, description: 'Kjærlighet i hvert lag' },
   { id: 'babyshower', icon: <Baby className="w-8 h-8" />, description: 'Velkommen lille en' },
-  { id: 'ramadan', icon: <Moon className="w-8 h-8" />, description: 'Eid mubarak' },
+  { id: 'ramadan', icon: <Moon className="w-8 h-8" />, description: 'Ramadan Kareem' },
   { id: 'annet', icon: <Sparkles className="w-8 h-8" />, description: 'Bare fordi' },
 ];
 
@@ -65,7 +65,7 @@ export function OccasionSection({ selected, onSelect }: OccasionSectionProps) {
                 {occasion.description}
               </p>
             </div>
-            
+
             {selected === occasion.id && (
               <motion.div
                 layoutId="occasion-selected"

@@ -15,7 +15,17 @@ interface DetailsSectionProps {
 
 export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const showCakeFields = orderData.productType === 'kaker' || orderData.productType === 'cupcakes';
+
+  // Show cake fields if a package was selected (most packages include cakes) or if productType is kaker/cupcakes
+  const hasPackage = !!orderData.selectedPackage;
+  const isCustom = orderData.isCustomDesign;
+  const packageIncludesCake = orderData.selectedPackage?.items.some(
+    (item) => item.toLowerCase().includes('kake') || item.toLowerCase().includes('cupcake')
+  ) ?? false;
+  const showCakeFields = packageIncludesCake || orderData.productType === 'kaker' || orderData.productType === 'cupcakes';
+
+  // Only show quantity field for custom designs (packages have predefined quantities)
+  const showQuantity = !hasPackage;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -27,7 +37,8 @@ export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSecti
     onUpdate({ images: newImages });
   };
 
-  const isValid = orderData.quantity.trim() !== '' && orderData.customerName.trim() !== '' && orderData.customerEmail.trim() !== '' && orderData.customerPhone.trim() !== '';
+  // Quantity is only required for custom designs
+  const isValid = orderData.customerName.trim() !== '' && orderData.customerEmail.trim() !== '' && orderData.customerPhone.trim() !== '' && (hasPackage || orderData.quantity.trim() !== '');
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -153,19 +164,21 @@ export function DetailsSection({ orderData, onUpdate, onContinue }: DetailsSecti
           </>
         )}
 
-        {/* Quantity */}
-        <div className="space-y-2">
-          <Label htmlFor="quantity" className="text-base">
-            Antall personer / stykker *
-          </Label>
-          <Input
-            id="quantity"
-            placeholder="F.eks. '20 personer' eller '24 stykker'"
-            value={orderData.quantity}
-            onChange={(e) => onUpdate({ quantity: e.target.value })}
-            required
-          />
-        </div>
+        {/* Quantity — only for custom designs */}
+        {showQuantity && (
+          <div className="space-y-2">
+            <Label htmlFor="quantity" className="text-base">
+              Antall personer / stykker *
+            </Label>
+            <Input
+              id="quantity"
+              placeholder="F.eks. '20 personer' eller '24 stykker'"
+              value={orderData.quantity}
+              onChange={(e) => onUpdate({ quantity: e.target.value })}
+              required
+            />
+          </div>
+        )}
 
         {/* Image Upload */}
         <div className="space-y-3">

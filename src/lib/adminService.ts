@@ -9,6 +9,9 @@ export interface OrderRow {
     customer_phone: string;
     occasion: string;
     product_type: string;
+    package_name: string;
+    package_price: number | null;
+    is_custom_design: boolean;
     description: string;
     ideas: string;
     cake_name: string;

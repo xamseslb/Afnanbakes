@@ -27,6 +27,14 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
+                  to="/priser"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Priser
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/om-oss"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >

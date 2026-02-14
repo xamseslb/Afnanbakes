@@ -86,7 +86,7 @@ export default function AdminOrders() {
                 order.order_ref?.toLowerCase().includes(query) ||
                 order.customer_name?.toLowerCase().includes(query) ||
                 order.customer_email?.toLowerCase().includes(query) ||
-                order.product_type?.toLowerCase().includes(query) ||
+                order.package_name?.toLowerCase().includes(query) ||
                 order.occasion?.toLowerCase().includes(query);
             return matchesStatus && matchesSearch;
         });
@@ -158,10 +158,10 @@ export default function AdminOrders() {
                             key={status}
                             onClick={() => setStatusFilter(status)}
                             className={`px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap ${statusFilter === status
-                                    ? status === 'all'
-                                        ? 'bg-foreground text-background'
-                                        : statusColors[status]
-                                    : 'bg-card text-muted-foreground hover:bg-accent border border-border/50'
+                                ? status === 'all'
+                                    ? 'bg-foreground text-background'
+                                    : statusColors[status]
+                                : 'bg-card text-muted-foreground hover:bg-accent border border-border/50'
                                 }`}
                         >
                             {status === 'all' ? 'Alle' : statusLabels[status]}
@@ -193,7 +193,7 @@ export default function AdminOrders() {
                         <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-muted/30 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/50">
                             <div className="col-span-2">Referanse</div>
                             <div className="col-span-2">Kunde</div>
-                            <div className="col-span-2">Produkt</div>
+                            <div className="col-span-2">Pakke</div>
                             <div className="col-span-2">Anledning</div>
                             <div className="col-span-2">Dato</div>
                             <div className="col-span-2">Status</div>
@@ -221,8 +221,8 @@ export default function AdminOrders() {
                                         </span>
                                     </div>
                                     <div className="col-span-2 flex items-center">
-                                        <span className="text-sm text-muted-foreground capitalize">
-                                            {order.product_type || '—'}
+                                        <span className="text-sm text-muted-foreground">
+                                            {order.package_name || order.product_type || '—'}
                                         </span>
                                     </div>
                                     <div className="col-span-2 flex items-center">
@@ -317,8 +317,8 @@ export default function AdminOrders() {
                                                     onClick={() => handleStatusChange(selectedOrder.id, status)}
                                                     disabled={isActive || updating}
                                                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                                            ? `${statusColors[status]} ring-2 ring-offset-2 ring-current`
-                                                            : 'bg-card border border-border/50 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50'
+                                                        ? `${statusColors[status]} ring-2 ring-offset-2 ring-current`
+                                                        : 'bg-card border border-border/50 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50'
                                                         }`}
                                                 >
                                                     <Icon className="w-4 h-4" />
@@ -363,8 +363,13 @@ export default function AdminOrders() {
                                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Bestillingsdetaljer</p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <DetailCard label="Anledning" value={selectedOrder.occasion} />
-                                        <DetailCard label="Produkt" value={selectedOrder.product_type} />
-                                        <DetailCard label="Antall" value={selectedOrder.quantity} />
+                                        <DetailCard label="Pakke" value={selectedOrder.package_name || selectedOrder.product_type || '—'} />
+                                        {selectedOrder.package_price != null && (
+                                            <DetailCard label="Pakkepris" value={`${selectedOrder.package_price.toLocaleString('nb-NO')} kr`} />
+                                        )}
+                                        {selectedOrder.quantity && (
+                                            <DetailCard label="Antall" value={selectedOrder.quantity} />
+                                        )}
                                         <DetailCard
                                             label="Bestilt"
                                             value={formatDate(selectedOrder.created_at)}

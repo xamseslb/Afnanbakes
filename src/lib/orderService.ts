@@ -9,6 +9,9 @@ export interface OrderRecord {
     customer_phone: string;
     occasion: string;
     product_type: string;
+    package_name: string;
+    package_price: number | null;
+    is_custom_design: boolean;
     description: string;
     ideas: string;
     cake_name: string;
@@ -90,6 +93,9 @@ export async function submitOrder(orderData: OrderData): Promise<{ success: bool
             customer_phone: orderData.customerPhone,
             occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
             product_type: orderData.productType ? productLabels[orderData.productType] : '',
+            package_name: orderData.selectedPackage?.name || (orderData.isCustomDesign ? 'Eget design' : ''),
+            package_price: orderData.selectedPackage?.price ?? null,
+            is_custom_design: orderData.isCustomDesign,
             description: orderData.description,
             ideas: orderData.ideas,
             cake_name: orderData.cakeName,

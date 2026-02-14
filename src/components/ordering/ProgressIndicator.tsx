@@ -7,7 +7,7 @@ interface ProgressIndicatorProps {
   totalSteps: number;
 }
 
-const stepLabels = ['Start', 'Anledning', 'Produkt', 'Detaljer', 'Oppsummering', 'Ferdig'];
+const stepLabels = ['Start', 'Anledning', 'Pakke', 'Detaljer', 'Oppsummering', 'Ferdig'];
 
 export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
   return (
@@ -17,7 +17,7 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
           const step = i + 1;
           const isCompleted = step < currentStep;
           const isCurrent = step === currentStep;
-          
+
           return (
             <div key={step} className="flex items-center flex-1 last:flex-none">
               <div className="flex flex-col items-center">
@@ -25,8 +25,8 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
                   initial={false}
                   animate={{
                     scale: isCurrent ? 1.1 : 1,
-                    backgroundColor: isCompleted || isCurrent 
-                      ? 'hsl(var(--primary))' 
+                    backgroundColor: isCompleted || isCurrent
+                      ? 'hsl(var(--primary))'
                       : 'hsl(var(--muted))',
                   }}
                   className={cn(
@@ -49,7 +49,7 @@ export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicator
                   {stepLabels[i]}
                 </span>
               </div>
-              
+
               {step < totalSteps && (
                 <div className="flex-1 mx-2">
                   <div className="h-0.5 bg-muted rounded-full overflow-hidden">

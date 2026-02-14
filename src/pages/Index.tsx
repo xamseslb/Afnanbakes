@@ -1,15 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProgressIndicator } from '@/components/ordering/ProgressIndicator';
 import { LandingSection } from '@/components/ordering/LandingSection';
 import { OccasionSection } from '@/components/ordering/OccasionSection';
-import { ProductSection } from '@/components/ordering/ProductSection';
+import { PackageSection, occasionPackages } from '@/components/ordering/PackageSection';
 import { DetailsSection } from '@/components/ordering/DetailsSection';
 import { SummarySection } from '@/components/ordering/SummarySection';
 import { SuccessSection } from '@/components/ordering/SuccessSection';
-import { OrderData, Occasion, ProductType } from '@/lib/orderTypes';
+import { OrderData, Occasion, PackageOption } from '@/lib/orderTypes';
 import { submitOrder } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,6 +19,8 @@ const TOTAL_STEPS = 6;
 const initialOrderData: OrderData = {
   occasion: null,
   productType: null,
+  selectedPackage: null,
+  isCustomDesign: false,
   customerName: '',
   customerEmail: '',
   customerPhone: '',
@@ -36,6 +39,32 @@ export default function Index() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderRef, setOrderRef] = useState<string | null>(null);
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Deep-link: if coming from /priser with ?anledning=X&pakke=Y, pre-fill and skip ahead
+  useEffect(() => {
+    const anledning = searchParams.get('anledning') as Occasion | null;
+    if (!anledning) return;
+
+    const pakkeName = searchParams.get('pakke');
+    const packages = occasionPackages[anledning]?.packages || [];
+    const matchedPkg = pakkeName
+      ? packages.find((p) => p.name === decodeURIComponent(pakkeName))
+      : null;
+
+    setOrderData((prev) => ({
+      ...prev,
+      occasion: anledning,
+      selectedPackage: matchedPkg || null,
+      isCustomDesign: false,
+    }));
+
+    // Jump to details (step 4) if a package was matched, else jump to package selection (step 3)
+    setCurrentStep(matchedPkg ? 4 : 3);
+
+    // Clean up URL params
+    setSearchParams({}, { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goToStep = useCallback((step: number) => {
     setDirection(step > currentStep ? 'forward' : 'backward');
@@ -53,13 +82,25 @@ export default function Index() {
   }, []);
 
   const handleOccasionSelect = (occasion: Occasion) => {
-    setOrderData((prev) => ({ ...prev, occasion }));
-    setTimeout(goNext, 300);
+    // "Annet" has no packages — skip straight to details as custom design
+    if (occasion === 'annet') {
+      setOrderData((prev) => ({ ...prev, occasion, selectedPackage: null, isCustomDesign: true }));
+      setDirection('forward');
+      setTimeout(() => setCurrentStep(4), 300);
+    } else {
+      setOrderData((prev) => ({ ...prev, occasion, selectedPackage: null, isCustomDesign: false }));
+      setTimeout(goNext, 300);
+    }
   };
 
-  const handleProductSelect = (productType: ProductType) => {
-    setOrderData((prev) => ({ ...prev, productType }));
-    setTimeout(goNext, 300);
+  const handlePackageSelect = (pkg: PackageOption) => {
+    setOrderData((prev) => ({ ...prev, selectedPackage: pkg, isCustomDesign: false }));
+    setTimeout(goNext, 400);
+  };
+
+  const handleCustomDesign = () => {
+    setOrderData((prev) => ({ ...prev, selectedPackage: null, isCustomDesign: true }));
+    setTimeout(goNext, 400);
   };
 
   const handleDetailsUpdate = (data: Partial<OrderData>) => {
@@ -164,9 +205,12 @@ export default function Index() {
               )}
 
               {currentStep === 3 && (
-                <ProductSection
-                  selected={orderData.productType}
-                  onSelect={handleProductSelect}
+                <PackageSection
+                  occasion={orderData.occasion}
+                  selectedPackage={orderData.selectedPackage}
+                  isCustomDesign={orderData.isCustomDesign}
+                  onSelectPackage={handlePackageSelect}
+                  onSelectCustom={handleCustomDesign}
                 />
               )}
 

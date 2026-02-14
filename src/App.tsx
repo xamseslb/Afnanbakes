@@ -17,6 +17,7 @@ import AdminOrders from "./pages/AdminOrders";
 import CancelOrder from "./pages/CancelOrder";
 import AboutPage from "./pages/AboutPage";
 import RulesPage from "./pages/RulesPage";
+import PricingPage from "./pages/PricingPage";
 
 const queryClient = new QueryClient();
 const ADMIN = import.meta.env.VITE_ADMIN_PATH || 'admin';
@@ -32,6 +33,7 @@ const App = () => (
             {/* Public routes — wrapped with Header + Footer via Layout */}
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/priser" element={<PricingPage />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/cakes" element={<CategoryPage />} />

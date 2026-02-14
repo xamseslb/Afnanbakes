@@ -1,9 +1,20 @@
 export type Occasion = 'bursdag' | 'bryllup' | 'babyshower' | 'ramadan' | 'annet';
 export type ProductType = 'kaker' | 'cookies' | 'cakepops' | 'cupcakes' | 'sambosa' | 'sabayad';
 
+export interface PackageOption {
+  name: string;
+  price: number;
+  items: string[];
+  popular?: boolean;
+}
+
 export interface OrderData {
   occasion: Occasion | null;
   productType: ProductType | null;
+  // Package selection
+  selectedPackage: PackageOption | null;
+  isCustomDesign: boolean;
+  // Customer info
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -19,7 +30,7 @@ export const occasionLabels: Record<Occasion, string> = {
   bursdag: 'Bursdag',
   bryllup: 'Bryllup',
   babyshower: 'Baby Shower',
-  ramadan: 'Ramadan/Eid',
+  ramadan: 'Ramadan',
   annet: 'Annet',
 };
 

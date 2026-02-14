@@ -130,7 +130,7 @@ export default function AdminDashboard() {
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
                                         <span className="text-xs font-bold text-muted-foreground">
-                                            {order.product_type?.slice(0, 2).toUpperCase() || '??'}
+                                            {(order.package_name || order.product_type)?.slice(0, 2).toUpperCase() || '??'}
                                         </span>
                                     </div>
                                     <div>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                                             {order.customer_name || 'Ukjent kunde'}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
-                                            {order.order_ref || '—'} · {order.product_type} · {order.occasion}
+                                            {order.order_ref || '—'} · {order.package_name || order.product_type || '—'} · {order.occasion}
                                         </p>
                                     </div>
                                 </div>

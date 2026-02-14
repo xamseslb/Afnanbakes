@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const menuLinks = [
   { href: '/', label: 'Hjem' },
+  { href: '/priser', label: 'Priser' },
   { href: '/om-oss', label: 'Om oss' },
   { href: '/regler', label: 'Slik fungerer det' },
   { href: '/kanseller', label: 'Kanseller bestilling' },

@@ -14,7 +14,7 @@ export default function CancelOrder() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-    const [orderInfo, setOrderInfo] = useState<{ id: string; customer_name: string; product_type: string; occasion: string } | null>(null);
+    const [orderInfo, setOrderInfo] = useState<{ id: string; customer_name: string; package_name: string; occasion: string } | null>(null);
 
     // Step 1: Look up the order
     async function handleLookup(e: React.FormEvent) {
@@ -24,7 +24,7 @@ export default function CancelOrder() {
 
         const { data, error } = await supabase
             .from('orders')
-            .select('id, customer_name, customer_email, product_type, occasion, status')
+            .select('id, customer_name, customer_email, package_name, product_type, occasion, status')
             .eq('order_ref', orderRef.trim().toUpperCase())
             .single();
 
@@ -57,7 +57,7 @@ export default function CancelOrder() {
         setOrderInfo({
             id: data.id,
             customer_name: data.customer_name,
-            product_type: data.product_type,
+            package_name: data.package_name || data.product_type || '',
             occasion: data.occasion,
         });
         setStep('confirm');
@@ -232,8 +232,8 @@ export default function CancelOrder() {
                                         <span className="text-foreground">{orderInfo.customer_name}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">Produkt</span>
-                                        <span className="text-foreground capitalize">{orderInfo.product_type}</span>
+                                        <span className="text-muted-foreground">Pakke</span>
+                                        <span className="text-foreground">{orderInfo.package_name || '—'}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Anledning</span>

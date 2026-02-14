@@ -29,8 +29,14 @@ export function SummarySection({ orderData, onEdit, onConfirm, isSubmitting = fa
       value: orderData.occasion ? occasionLabels[orderData.occasion] : '-',
     },
     {
-      label: 'Produkt',
-      value: orderData.productType ? productLabels[orderData.productType] : '-',
+      label: 'Pakke',
+      value: orderData.isCustomDesign
+        ? 'Eget design (pris avtales)'
+        : orderData.selectedPackage
+          ? `${orderData.selectedPackage.name} — fra ${orderData.selectedPackage.price.toLocaleString('nb-NO')} kr`
+          : orderData.productType
+            ? productLabels[orderData.productType]
+            : '-',
     },
     {
       label: 'Beskrivelse',

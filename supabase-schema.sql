@@ -10,12 +10,15 @@ CREATE TABLE orders (
   customer_email TEXT NOT NULL DEFAULT '',
   customer_phone TEXT NOT NULL DEFAULT '',
   occasion TEXT NOT NULL,
-  product_type TEXT NOT NULL,
+  product_type TEXT DEFAULT '',
+  package_name TEXT DEFAULT '',
+  package_price NUMERIC DEFAULT NULL,
+  is_custom_design BOOLEAN DEFAULT false,
   description TEXT DEFAULT '',
   ideas TEXT DEFAULT '',
   cake_name TEXT DEFAULT '',
   cake_text TEXT DEFAULT '',
-  quantity TEXT NOT NULL,
+  quantity TEXT DEFAULT '',
   image_urls TEXT[] DEFAULT '{}',
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled'))
 );
@@ -30,20 +33,37 @@ CREATE POLICY "Anyone can create orders"
   TO anon
   WITH CHECK (true);
 
--- 4. Only authenticated users (admin) can read orders
-CREATE POLICY "Authenticated users can read orders"
+-- 4. Allow anyone to SELECT orders (needed for admin panel + cancel page using anon key)
+CREATE POLICY "Anyone can read orders"
   ON orders
   FOR SELECT
-  TO authenticated
+  TO anon, authenticated
   USING (true);
 
--- 5. Create storage bucket for order images (run separately if needed)
+-- 5. Allow anyone to UPDATE orders (needed for admin status updates + cancellation)
+CREATE POLICY "Anyone can update orders"
+  ON orders
+  FOR UPDATE
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- 6. Create storage bucket for order images (run separately if needed)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('orders', 'orders', true);
 
 -- ============================================================
 -- MIGRATION: Run this on an EXISTING table to add new columns
 -- ============================================================
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_ref TEXT UNIQUE;
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name TEXT NOT NULL DEFAULT '';
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_email TEXT NOT NULL DEFAULT '';
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone TEXT NOT NULL DEFAULT '';
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS package_name TEXT DEFAULT '';
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS package_price NUMERIC DEFAULT NULL;
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_custom_design BOOLEAN DEFAULT false;
+-- ALTER TABLE orders ALTER COLUMN quantity DROP NOT NULL;
+-- ALTER TABLE orders ALTER COLUMN quantity SET DEFAULT '';
+-- ALTER TABLE orders ALTER COLUMN product_type DROP NOT NULL;
+-- ALTER TABLE orders ALTER COLUMN product_type SET DEFAULT '';
+--
+-- -- Add UPDATE policy (if it doesn't exist):
+-- CREATE POLICY "Anyone can update orders"
+--   ON orders FOR UPDATE TO anon, authenticated
+--   USING (true) WITH CHECK (true);
+
