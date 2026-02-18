@@ -13,6 +13,7 @@ import { SuccessSection } from '@/components/ordering/SuccessSection';
 import { OrderData, Occasion, PackageOption } from '@/lib/orderTypes';
 import { submitOrder } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
+import { HomeSections } from '@/components/ordering/HomeSections';
 
 const TOTAL_STEPS = 6;
 
@@ -238,6 +239,9 @@ export default function Index() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Homepage content sections — only visible on landing step */}
+      {currentStep === 1 && <HomeSections />}
     </div>
   );
 }

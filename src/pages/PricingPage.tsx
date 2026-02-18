@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cake, Heart, Moon, Baby, Check, ArrowRight, Sparkles, Star } from 'lucide-react';
+import { Cake, Heart, Moon, Baby, Check, ArrowRight, Sparkles, Star, ChevronDown, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -173,6 +173,98 @@ const occasions: OccasionData[] = [
     },
 ];
 
+const faqItems = [
+    {
+        q: 'Hvor lang tid i forveien må jeg bestille?',
+        a: 'Kaker bør bestilles minst 3–5 dager i forveien. Bryllupskaker og store bestillinger bør bestilles 1–2 uker i forveien. Cupcakes og cookies kan noen ganger lages med kortere frist — ta kontakt!',
+    },
+    {
+        q: 'Leverer dere i Oslo?',
+        a: 'Vi holder til i Oslo og tilbyr henting. Levering kan avtales for større bestillinger. Kontakt oss for å avtale detaljer.',
+    },
+    {
+        q: 'Kan dere lage glutenfritt eller allergitilpasset?',
+        a: 'Ja! Oppgi eventuelle allergier i bestillingsskjemaet, så tilpasser vi så godt vi kan. Merk at produktene våre kan inneholde spor av nøtter, egg, melk og gluten.',
+    },
+    {
+        q: 'Kan jeg designe min egen kake?',
+        a: 'Absolutt! Velg "Lag eget design" i bestillingen og beskriv ønskene dine. Du kan laste opp inspirasjonsbilder, og vi kontakter deg for å planlegge designet.',
+    },
+    {
+        q: 'Hvordan betaler jeg?',
+        a: 'Vi aksepterer Vipps og kontant betaling ved henting. Betaling avtales når vi bekrefter bestillingen din.',
+    },
+    {
+        q: 'Kan jeg kansellere en bestilling?',
+        a: 'Ja, bestillinger kan kanselleres inntil 48 timer før avtalt utlevering. Bruk kanselleringssiden med din ordrereferanse og e-post.',
+    },
+];
+
+function FaqSection() {
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+    return (
+        <section className="py-16 md:py-20">
+            <div className="container mx-auto px-4 max-w-3xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-center mb-12"
+                >
+                    <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 rounded-2xl mb-4">
+                        <HelpCircle className="w-7 h-7 text-primary" />
+                    </div>
+                    <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
+                        Ofte stilte spørsmål
+                    </h2>
+                    <p className="text-muted-foreground text-lg">
+                        Finn svar på de vanligste spørsmålene
+                    </p>
+                </motion.div>
+
+                <div className="space-y-3">
+                    {faqItems.map((item, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.05 }}
+                            className="bg-card rounded-xl border border-border/50 overflow-hidden"
+                        >
+                            <button
+                                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                                className="w-full flex items-center justify-between p-5 text-left hover:bg-secondary/30 transition-colors"
+                            >
+                                <span className="font-medium text-foreground pr-4">{item.q}</span>
+                                <ChevronDown
+                                    className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-300 ${openIndex === i ? 'rotate-180' : ''
+                                        }`}
+                                />
+                            </button>
+                            <AnimatePresence>
+                                {openIndex === i && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        <p className="px-5 pb-5 text-muted-foreground leading-relaxed">
+                                            {item.a}
+                                        </p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
 export default function PricingPage() {
     const [activeTab, setActiveTab] = useState<OccasionTab>('bursdag');
     const activeOccasion = occasions.find((o) => o.id === activeTab)!;
@@ -323,6 +415,9 @@ export default function PricingPage() {
                     </AnimatePresence>
                 </div>
             </section>
+
+            {/* FAQ Section */}
+            <FaqSection />
 
             {/* Custom CTA */}
             <section className="py-16 bg-secondary/30">

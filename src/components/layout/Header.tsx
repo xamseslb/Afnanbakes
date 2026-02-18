@@ -30,6 +30,22 @@ export function Header() {
             </span>
           </Link>
 
+          {/* Desktop Nav Links */}
+          <nav className="hidden lg:flex items-center gap-1">
+            {menuLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname === link.href
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                  }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
           {/* Right Side: Cart + Menu */}
           <div className="flex items-center gap-2">
             <Link to="/cart" className="relative">
@@ -47,6 +63,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setIsMenuOpen(true)}
+              className="lg:hidden"
               aria-label="Åpne meny"
             >
               <Menu className="h-6 w-6" />
