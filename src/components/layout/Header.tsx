@@ -21,11 +21,11 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <header className="relative z-50 w-full border-b border-border/50 bg-background">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl font-bold tracking-tight text-foreground">
+            <span className="font-serif text-2xl font-bold tracking-tight">
               Afnan<span className="text-primary">Bakes</span>
             </span>
           </Link>
@@ -37,8 +37,8 @@ export function Header() {
                 key={link.href}
                 to={link.href}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname === link.href
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
                   }`}
               >
                 {link.label}
@@ -96,7 +96,7 @@ export function Header() {
             >
               {/* Panel header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
-                <span className="font-serif text-lg font-bold text-foreground">
+                <span className="font-serif text-lg font-bold">
                   Afnan<span className="text-primary">Bakes</span>
                 </span>
                 <Button

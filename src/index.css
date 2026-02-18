@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,112 +8,112 @@
 
 @layer base {
   :root {
-    /* Brand Colors - Warm Gold & Cream */
-    --background: 40 20% 98%;
-    --foreground: 30 10% 15%;
+    /* Brand Colors - Soft Pink & Lavender */
+    --background: 330 25% 98%;
+    --foreground: 280 10% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 10% 15%;
+    --card-foreground: 280 10% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 10% 15%;
+    --popover-foreground: 280 10% 15%;
 
-    /* Primary - Elegant Gold */
-    --primary: 35 40% 63%;
+    /* Primary - Rosy Pink */
+    --primary: 330 55% 65%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft Cream */
-    --secondary: 35 30% 92%;
-    --secondary-foreground: 30 10% 25%;
+    /* Secondary - Soft Lavender */
+    --secondary: 300 20% 94%;
+    --secondary-foreground: 280 10% 25%;
 
-    --muted: 35 20% 94%;
-    --muted-foreground: 30 10% 45%;
+    --muted: 320 15% 95%;
+    --muted-foreground: 280 10% 45%;
 
-    /* Accent - Warm Taupe */
-    --accent: 30 25% 88%;
-    --accent-foreground: 30 10% 20%;
+    /* Accent - Light Lilac */
+    --accent: 290 20% 92%;
+    --accent-foreground: 280 10% 20%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 20% 88%;
-    --input: 35 20% 88%;
-    --ring: 35 40% 63%;
+    --border: 320 15% 90%;
+    --input: 320 15% 90%;
+    --ring: 330 55% 65%;
 
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 35 40% 63%;
-    --gold-dark: 35 45% 52%;
-    --gold-light: 35 35% 78%;
-    --cream: 40 30% 96%;
-    --warm-brown: 30 25% 25%;
-    --soft-beige: 35 25% 90%;
+    --gold: 330 55% 65%;
+    --gold-dark: 330 50% 55%;
+    --gold-light: 330 40% 80%;
+    --cream: 330 20% 97%;
+    --warm-brown: 280 15% 25%;
+    --soft-beige: 300 15% 92%;
 
     /* Gradients */
-    --gradient-gold: linear-gradient(135deg, hsl(35 40% 63%), hsl(35 45% 52%));
-    --gradient-hero: linear-gradient(180deg, hsl(40 20% 98%) 0%, hsl(35 30% 92%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(35 20% 98%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(330 55% 65%), hsl(300 40% 60%));
+    --gradient-hero: linear-gradient(180deg, hsl(330 25% 98%) 0%, hsl(300 20% 94%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(330 15% 98%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(30 25% 25% / 0.08);
-    --shadow-card: 0 8px 30px -8px hsl(30 25% 25% / 0.1);
-    --shadow-elevated: 0 20px 50px -15px hsl(30 25% 25% / 0.15);
+    --shadow-soft: 0 4px 20px -4px hsl(280 20% 30% / 0.08);
+    --shadow-card: 0 8px 30px -8px hsl(280 20% 30% / 0.1);
+    --shadow-elevated: 0 20px 50px -15px hsl(280 20% 30% / 0.15);
 
-    --sidebar-background: 40 20% 98%;
-    --sidebar-foreground: 30 10% 25%;
-    --sidebar-primary: 35 40% 63%;
+    --sidebar-background: 330 25% 98%;
+    --sidebar-foreground: 280 10% 25%;
+    --sidebar-primary: 330 55% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 35 25% 90%;
-    --sidebar-accent-foreground: 30 10% 20%;
-    --sidebar-border: 35 20% 88%;
-    --sidebar-ring: 35 40% 63%;
+    --sidebar-accent: 300 15% 92%;
+    --sidebar-accent-foreground: 280 10% 20%;
+    --sidebar-border: 320 15% 90%;
+    --sidebar-ring: 330 55% 65%;
   }
 
   .dark {
-    --background: 30 15% 8%;
-    --foreground: 35 20% 95%;
+    --background: 280 15% 8%;
+    --foreground: 330 20% 95%;
 
-    --card: 30 15% 12%;
-    --card-foreground: 35 20% 95%;
+    --card: 280 15% 12%;
+    --card-foreground: 330 20% 95%;
 
-    --popover: 30 15% 12%;
-    --popover-foreground: 35 20% 95%;
+    --popover: 280 15% 12%;
+    --popover-foreground: 330 20% 95%;
 
-    --primary: 35 45% 58%;
-    --primary-foreground: 30 15% 8%;
+    --primary: 330 50% 62%;
+    --primary-foreground: 280 15% 8%;
 
-    --secondary: 30 15% 18%;
-    --secondary-foreground: 35 20% 90%;
+    --secondary: 280 15% 18%;
+    --secondary-foreground: 330 20% 90%;
 
-    --muted: 30 15% 18%;
-    --muted-foreground: 35 15% 60%;
+    --muted: 280 15% 18%;
+    --muted-foreground: 320 15% 60%;
 
-    --accent: 30 20% 22%;
-    --accent-foreground: 35 20% 90%;
+    --accent: 280 20% 22%;
+    --accent-foreground: 330 20% 90%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 20%;
-    --input: 30 15% 20%;
-    --ring: 35 45% 58%;
+    --border: 280 15% 20%;
+    --input: 280 15% 20%;
+    --ring: 330 50% 62%;
 
-    --gold: 35 45% 58%;
-    --gold-dark: 35 50% 48%;
-    --gold-light: 35 40% 70%;
-    --cream: 30 15% 15%;
-    --warm-brown: 35 20% 85%;
-    --soft-beige: 30 15% 20%;
+    --gold: 330 50% 62%;
+    --gold-dark: 330 55% 52%;
+    --gold-light: 330 40% 72%;
+    --cream: 280 15% 15%;
+    --warm-brown: 330 20% 85%;
+    --soft-beige: 280 15% 20%;
 
-    --sidebar-background: 30 15% 10%;
-    --sidebar-foreground: 35 20% 90%;
-    --sidebar-primary: 35 45% 58%;
-    --sidebar-primary-foreground: 30 15% 8%;
-    --sidebar-accent: 30 15% 18%;
-    --sidebar-accent-foreground: 35 20% 90%;
-    --sidebar-border: 30 15% 20%;
-    --sidebar-ring: 35 45% 58%;
+    --sidebar-background: 280 15% 10%;
+    --sidebar-foreground: 330 20% 90%;
+    --sidebar-primary: 330 50% 62%;
+    --sidebar-primary-foreground: 280 15% 8%;
+    --sidebar-accent: 280 15% 18%;
+    --sidebar-accent-foreground: 330 20% 90%;
+    --sidebar-border: 280 15% 20%;
+    --sidebar-ring: 330 50% 62%;
   }
 }
 
@@ -127,29 +127,38 @@
     font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', serif;
   }
 }
 
 @layer utilities {
+  .font-logo {
+    font-family: 'Pacifico', cursive;
+  }
+
   .font-serif {
     font-family: 'Playfair Display', serif;
   }
-  
+
   .font-sans {
     font-family: 'Inter', sans-serif;
   }
 
   .text-gradient-gold {
-    background: linear-gradient(135deg, hsl(35 40% 63%), hsl(35 45% 52%));
+    background: linear-gradient(135deg, hsl(330 55% 65%), hsl(300 40% 60%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .bg-gradient-hero {
-    background: linear-gradient(180deg, hsl(40 20% 98%) 0%, hsl(35 30% 92%) 100%);
+    background: linear-gradient(180deg, hsl(330 25% 98%) 0%, hsl(300 20% 94%) 100%);
   }
 
   .shadow-soft {

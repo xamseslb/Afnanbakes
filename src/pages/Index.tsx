@@ -83,14 +83,14 @@ export default function Index() {
   }, []);
 
   const handleOccasionSelect = (occasion: Occasion) => {
+    setDirection('forward');
     // "Annet" has no packages — skip straight to details as custom design
     if (occasion === 'annet') {
       setOrderData((prev) => ({ ...prev, occasion, selectedPackage: null, isCustomDesign: true }));
-      setDirection('forward');
       setTimeout(() => setCurrentStep(4), 300);
     } else {
       setOrderData((prev) => ({ ...prev, occasion, selectedPackage: null, isCustomDesign: false }));
-      setTimeout(goNext, 300);
+      setTimeout(() => setCurrentStep(3), 300);
     }
   };
 
@@ -152,7 +152,7 @@ export default function Index() {
 
       {/* Back button + Progress indicator (for ordering steps) */}
       {currentStep > 1 && currentStep < TOTAL_STEPS && (
-        <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="relative z-40 bg-background border-b border-border">
           <div className="container mx-auto px-4">
             <div className="flex items-center h-12">
               <motion.div
@@ -179,8 +179,8 @@ export default function Index() {
       )}
 
       {/* Main content */}
-      <main className={currentStep > 1 && currentStep < TOTAL_STEPS ? 'pt-4' : 'pt-8'}>
-        <div className="container mx-auto min-h-[calc(100vh-5rem)]">
+      <main className={currentStep === 1 ? '' : currentStep > 1 && currentStep < TOTAL_STEPS ? 'pt-4' : 'pt-8'}>
+        <div className={currentStep === 1 ? 'min-h-[calc(100vh-5rem)]' : 'container mx-auto min-h-[calc(100vh-5rem)]'}>
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep}
@@ -195,7 +195,7 @@ export default function Index() {
               }}
             >
               {currentStep === 1 && (
-                <LandingSection onStart={goNext} />
+                <LandingSection onStart={goNext} onSelectOccasion={handleOccasionSelect} />
               )}
 
               {currentStep === 2 && (

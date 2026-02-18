@@ -167,7 +167,7 @@ export function PackageSection({
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center mb-10"
+                className="text-center mb-8"
             >
                 <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
                     {hasPackages ? 'Velg en pakke' : 'Beskriv bestillingen'}
@@ -179,11 +179,75 @@ export function PackageSection({
                 </p>
             </motion.div>
 
+            {/* Custom design option — always visible at top */}
+            <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={onSelectCustom}
+                className={cn(
+                    'w-full max-w-3xl mx-auto block text-left rounded-2xl p-5 transition-all duration-300 mb-6',
+                    'hover:shadow-elevated',
+                    isCustomDesign
+                        ? 'bg-card border-2 border-primary shadow-elevated ring-1 ring-primary/20'
+                        : 'bg-card border border-dashed border-border shadow-soft hover:border-primary/40'
+                )}
+            >
+                <div className="flex items-center gap-4">
+                    <div
+                        className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors',
+                            isCustomDesign
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-secondary text-muted-foreground'
+                        )}
+                    >
+                        <Palette className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-serif text-base font-bold text-card-foreground">
+                                Lag eget design
+                            </h3>
+                            {isCustomDesign && (
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="w-5 h-5 bg-primary rounded-full flex items-center justify-center"
+                                >
+                                    <Check className="w-3 h-3 text-primary-foreground" />
+                                </motion.div>
+                            )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                            Har du en unik visjon? Beskriv ønskene dine, så gir vi deg et skreddersydd tilbud.
+                        </p>
+                    </div>
+                    <ArrowRight
+                        className={cn(
+                            'w-5 h-5 flex-shrink-0 transition-colors',
+                            isCustomDesign ? 'text-primary' : 'text-muted-foreground'
+                        )}
+                    />
+                </div>
+            </motion.button>
+
+            {/* Divider */}
+            {hasPackages && (
+                <div className="flex items-center gap-4 max-w-3xl mx-auto mb-8">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-muted-foreground font-medium">
+                        eller velg en pakke
+                    </span>
+                    <div className="flex-1 h-px bg-border" />
+                </div>
+            )}
+
             {/* Package cards */}
             {hasPackages && (
                 <div
                     className={cn(
-                        'grid gap-5 mb-8',
+                        'grid gap-5',
                         packages.length === 2
                             ? 'grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto'
                             : 'grid-cols-1 md:grid-cols-3'
@@ -196,7 +260,7 @@ export function PackageSection({
                                 key={pkg.name}
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1, duration: 0.4 }}
+                                transition={{ delay: index * 0.1 + 0.2, duration: 0.4 }}
                                 onClick={() => onSelectPackage(pkg)}
                                 className={cn(
                                     'relative text-left rounded-2xl p-6 transition-all duration-300 flex flex-col',
@@ -268,70 +332,6 @@ export function PackageSection({
                     })}
                 </div>
             )}
-
-            {/* Divider */}
-            {hasPackages && (
-                <div className="flex items-center gap-4 max-w-3xl mx-auto mb-8">
-                    <div className="flex-1 h-px bg-border" />
-                    <span className="text-sm text-muted-foreground font-medium">
-                        eller
-                    </span>
-                    <div className="flex-1 h-px bg-border" />
-                </div>
-            )}
-
-            {/* Custom design option */}
-            <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: hasPackages ? 0.4 : 0.1 }}
-                onClick={onSelectCustom}
-                className={cn(
-                    'w-full max-w-3xl mx-auto block text-left rounded-2xl p-6 transition-all duration-300',
-                    'hover:shadow-elevated',
-                    isCustomDesign
-                        ? 'bg-card border-2 border-primary shadow-elevated ring-1 ring-primary/20'
-                        : 'bg-card border border-dashed border-border shadow-soft hover:border-primary/40'
-                )}
-            >
-                <div className="flex items-center gap-5">
-                    <div
-                        className={cn(
-                            'w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors',
-                            isCustomDesign
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-secondary text-muted-foreground'
-                        )}
-                    >
-                        <Palette className="w-7 h-7" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-serif text-lg font-bold text-card-foreground">
-                                Lag eget design
-                            </h3>
-                            {isCustomDesign && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="w-6 h-6 bg-primary rounded-full flex items-center justify-center"
-                                >
-                                    <Check className="w-3.5 h-3.5 text-primary-foreground" />
-                                </motion.div>
-                            )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            Har du en unik visjon? Beskriv hva du ønsker, og vi gir deg et skreddersydd tilbud.
-                        </p>
-                    </div>
-                    <ArrowRight
-                        className={cn(
-                            'w-5 h-5 flex-shrink-0 transition-colors',
-                            isCustomDesign ? 'text-primary' : 'text-muted-foreground'
-                        )}
-                    />
-                </div>
-            </motion.button>
         </div>
     );
 }

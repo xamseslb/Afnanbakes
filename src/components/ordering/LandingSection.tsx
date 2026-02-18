@@ -1,84 +1,196 @@
-import { motion } from 'framer-motion';
-import { ArrowRight, Heart, Cake, Sparkles } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Occasion } from '@/lib/orderTypes';
 
 interface LandingSectionProps {
   onStart: () => void;
+  onSelectOccasion?: (occasion: Occasion) => void;
 }
 
-export function LandingSection({ onStart }: LandingSectionProps) {
+const heroSlides = [
+  {
+    image: '/images/hero/Gemini_Generated_Image_hdop7uhdop7uhdop.jpg',
+    title: 'Kaker, Cupcakes & Mer',
+    subtitle: 'Håndlaget med kjærlighet i Oslo',
+  },
+  {
+    image: '/images/hero/Gemini_Generated_Image_ho4r4iho4r4iho4r.jpg',
+    title: 'For Alle Anledninger',
+    subtitle: 'Bryllup, bursdag, Eid & Baby Shower',
+  },
+  {
+    image: '/images/hero/Gemini_Generated_Image_ig5ylfig5ylfig5y.jpg',
+    title: 'Skreddersydd For Deg',
+    subtitle: 'Fortell oss din visjon — vi baker drømmen',
+  },
+  {
+    image: '/images/hero/Gemini_Generated_Image_si9vuesi9vuesi9v.jpg',
+    title: 'Autentisk Somalisk Bakst',
+    subtitle: 'Sambosa, kaker og mye mer',
+  },
+  {
+    image: '/images/hero/Gemini_Generated_Image_tnjsr2tnjsr2tnjs.jpg',
+    title: 'Premium Kvalitet',
+    subtitle: 'De fineste ingrediensene, bakt med lidenskap',
+  },
+  {
+    image: '/images/hero/Gemini_Generated_Image_yfycl6yfycl6yfyc.jpg',
+    title: 'Bestill I Dag',
+    subtitle: 'Enkel bestilling — vi ordner resten',
+  },
+];
+
+const occasionTags: { label: string; value: Occasion }[] = [
+  { label: 'Bryllup', value: 'bryllup' },
+  { label: 'Bursdag', value: 'bursdag' },
+  { label: 'Eid', value: 'ramadan' },
+  { label: 'Baby Shower', value: 'babyshower' },
+];
+
+export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProps) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  }, []);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  }, []);
+
+  // Auto-advance every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(nextSlide, 5000);
+    return () => clearInterval(timer);
+  }, [nextSlide]);
+
+  const slide = heroSlides[currentSlide];
+
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center text-center px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="max-w-2xl mx-auto"
-      >
-        {/* Decorative icons */}
-        <div className="flex items-center justify-center gap-4 mb-6">
+    <div className="w-full">
+      {/* ── Full-Bleed Hero Carousel ── */}
+      <section className="relative w-screen -ml-[calc((100vw-100%)/2)] h-[70vh] md:h-[85vh] overflow-hidden">
+        {/* Background image */}
+        <AnimatePresence mode="wait">
           <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+            key={currentSlide}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="absolute inset-0"
           >
-            <Cake className="w-8 h-8 text-primary" />
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover"
+            />
+            {/* Gradient overlay for readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
           </motion.div>
+        </AnimatePresence>
+
+        {/* Content overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg">
+                {slide.title}
+              </h1>
+              <p className="text-lg md:text-2xl text-white/90 mb-8 drop-shadow-md max-w-2xl mx-auto">
+                {slide.subtitle}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* CTA */}
           <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
           >
-            <Heart className="w-6 h-6 text-primary/70" />
-          </motion.div>
-          <motion.div
-            animate={{ rotate: [0, -10, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1.5 }}
-          >
-            <Sparkles className="w-8 h-8 text-primary" />
+            <Button
+              size="lg"
+              onClick={onStart}
+              className="gap-2 rounded-full text-lg px-8 py-6 bg-white text-foreground hover:bg-white/90 shadow-elevated transition-all duration-300"
+            >
+              Bestill nå
+              <ArrowRight className="w-5 h-5" />
+            </Button>
           </motion.div>
         </div>
 
-        <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6">
-          Afnan<span className="text-primary">Bakes</span>
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-muted-foreground mb-4">
-          Håndlaget med kjærlighet i Oslo
-        </p>
-        
-        <p className="text-lg text-muted-foreground/80 mb-8 max-w-lg mx-auto leading-relaxed">
-          Fra klassiske kaker til autentisk somalisk bakst. Hver smak er en opplevelse, 
-          bakt med lidenskap og de fineste ingrediensene for dine spesielle øyeblikk.
-        </p>
+        {/* Navigation arrows */}
+        <button
+          onClick={prevSlide}
+          aria-label="Forrige bilde"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button
+          onClick={nextSlide}
+          aria-label="Neste bilde"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-colors"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
-          {['Bryllup', 'Bursdag', 'Eid', 'Baby Shower'].map((occasion, i) => (
-            <motion.span
-              key={occasion}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-              className="px-4 py-2 bg-secondary/50 rounded-full text-sm text-muted-foreground"
-            >
-              {occasion}
-            </motion.span>
+        {/* Slide indicators */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {heroSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentSlide(i)}
+              aria-label={`Gå til bilde ${i + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 ${i === currentSlide ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                }`}
+            />
           ))}
         </div>
+      </section>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Button
-            size="lg"
-            onClick={onStart}
-            className="gap-2 rounded-full text-lg px-8 py-6 shadow-elevated hover:shadow-card transition-all duration-300"
+      {/* ── Occasion Quick-Pick ── */}
+      <section className="py-14 bg-background">
+        <div className="container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
-            Bestill nå
-            <ArrowRight className="w-5 h-5" />
-          </Button>
-        </motion.div>
-      </motion.div>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
+              Hva feirer du?
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              Velg anledning og kom rett til bestillingen
+            </p>
+          </motion.div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {occasionTags.map((tag, i) => (
+              <motion.button
+                key={tag.value}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                onClick={() => onSelectOccasion?.(tag.value)}
+                className="px-6 py-3 bg-card border border-border/50 rounded-full text-base font-medium text-foreground shadow-soft hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-elevated transition-all duration-300 cursor-pointer"
+              >
+                {tag.label}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -298,7 +298,7 @@ export default function PricingPage() {
             </section>
 
             {/* Tabs */}
-            <section className="border-b border-border sticky top-16 bg-background/95 backdrop-blur-sm z-20">
+            <section className="border-b border-border relative bg-background z-20">
                 <div className="container mx-auto px-4">
                     <div className="flex gap-1 justify-center py-3 overflow-x-auto">
                         {occasions.map((occasion) => (

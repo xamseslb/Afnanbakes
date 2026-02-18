@@ -57,10 +57,10 @@ const steps = [
 
 /* ──────────────────── Products ──────────────────── */
 const products = [
-    { icon: Cake, name: 'Kaker', desc: 'Skreddersydde for alle anledninger' },
-    { icon: Heart, name: 'Cupcakes', desc: 'Dekorerte med kjærlighet' },
-    { icon: Cookie, name: 'Cookies', desc: 'Hjemmelagde og sprø' },
-    { icon: Shield, name: 'Sambosa', desc: 'Autentisk somalisk smak' },
+    { icon: Cake, name: 'Kaker', desc: 'Skreddersydde for alle anledninger', link: '/?anledning=bursdag' },
+    { icon: Heart, name: 'Cupcakes', desc: 'Dekorerte med kjærlighet', link: '/?anledning=babyshower' },
+    { icon: Cookie, name: 'Cookies', desc: 'Hjemmelagde og sprø', link: '/?anledning=annet' },
+    { icon: Shield, name: 'Sambosa', desc: 'Autentisk somalisk smak', link: '/?anledning=ramadan' },
 ];
 
 /* ──────────────────── Main Component ──────────────────── */
@@ -128,20 +128,21 @@ export function HomeSections() {
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {products.map((prod, i) => (
-                            <motion.div
-                                key={prod.name}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.08 }}
-                                className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft text-center hover:shadow-card hover:border-primary/30 transition-all duration-300"
-                            >
-                                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                                    <prod.icon className="w-6 h-6 text-primary" />
-                                </div>
-                                <h3 className="font-semibold text-foreground text-sm">{prod.name}</h3>
-                                <p className="text-xs text-muted-foreground mt-1">{prod.desc}</p>
-                            </motion.div>
+                            <Link key={prod.name} to={prod.link}>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    whileInView={{ opacity: 1, scale: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.08 }}
+                                    className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft text-center hover:shadow-card hover:border-primary/30 transition-all duration-300 cursor-pointer"
+                                >
+                                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                        <prod.icon className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <h3 className="font-semibold text-foreground text-sm">{prod.name}</h3>
+                                    <p className="text-xs text-muted-foreground mt-1">{prod.desc}</p>
+                                </motion.div>
+                            </Link>
                         ))}
                     </div>
 
