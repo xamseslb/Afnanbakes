@@ -34,13 +34,41 @@ const initialOrderData: OrderData = {
 };
 
 export default function Index() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStepRaw] = useState(1);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [orderData, setOrderData] = useState<OrderData>(initialOrderData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderRef, setOrderRef] = useState<string | null>(null);
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Wrapper: push browser history when step changes so Chrome back button works
+  const setCurrentStep = useCallback((stepOrFn: number | ((prev: number) => number)) => {
+    setCurrentStepRaw((prev) => {
+      const next = typeof stepOrFn === 'function' ? stepOrFn(prev) : stepOrFn;
+      if (next !== prev && next > 1) {
+        window.history.pushState({ orderStep: next }, '');
+      }
+      return next;
+    });
+  }, []);
+
+  // Listen for browser back button (popstate)
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      const step = e.state?.orderStep;
+      if (typeof step === 'number' && step >= 1 && step <= TOTAL_STEPS) {
+        setDirection('backward');
+        setCurrentStepRaw(step);
+      } else {
+        // No ordering step in history — go back to landing
+        setDirection('backward');
+        setCurrentStepRaw(1);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Deep-link: if coming from /priser with ?anledning=X&pakke=Y, pre-fill and skip ahead
   useEffect(() => {
@@ -60,8 +88,9 @@ export default function Index() {
       isCustomDesign: false,
     }));
 
-    // Jump to details (step 4) if a package was matched, else jump to package selection (step 3)
-    setCurrentStep(matchedPkg ? 4 : 3);
+    const targetStep = matchedPkg ? 4 : 3;
+    setCurrentStepRaw(targetStep);
+    window.history.replaceState({ orderStep: targetStep }, '');
 
     // Clean up URL params
     setSearchParams({}, { replace: true });
@@ -70,17 +99,17 @@ export default function Index() {
   const goToStep = useCallback((step: number) => {
     setDirection(step > currentStep ? 'forward' : 'backward');
     setCurrentStep(step);
-  }, [currentStep]);
+  }, [currentStep, setCurrentStep]);
 
   const goNext = useCallback(() => {
     setDirection('forward');
     setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-  }, []);
+  }, [setCurrentStep]);
 
   const goBack = useCallback(() => {
     setDirection('backward');
     setCurrentStep((prev) => Math.max(prev - 1, 1));
-  }, []);
+  }, [setCurrentStep]);
 
   const handleOccasionSelect = (occasion: Occasion) => {
     setDirection('forward');
@@ -129,7 +158,7 @@ export default function Index() {
     setOrderData(initialOrderData);
     setOrderRef(null);
     setDirection('backward');
-    setCurrentStep(1);
+    setCurrentStepRaw(1);
   };
 
   const pageVariants = {

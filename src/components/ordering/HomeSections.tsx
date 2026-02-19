@@ -13,9 +13,9 @@ const testimonials = [
     },
     {
         name: 'Fatima A.',
-        text: 'Sambosaene til Ramadan var fantastiske — hele familien elsket dem. Bestiller igjen neste år!',
+        text: 'Kakene var fantastiske — hele familien elsket dem. Bestiller igjen neste år!',
         stars: 5,
-        occasion: 'Ramadan',
+        occasion: 'Feiring',
     },
     {
         name: 'Lina K.',
@@ -57,10 +57,9 @@ const steps = [
 
 /* ──────────────────── Products ──────────────────── */
 const products = [
-    { icon: Cake, name: 'Kaker', desc: 'Skreddersydde for alle anledninger', link: '/?anledning=bursdag' },
-    { icon: Heart, name: 'Cupcakes', desc: 'Dekorerte med kjærlighet', link: '/?anledning=babyshower' },
-    { icon: Cookie, name: 'Cookies', desc: 'Hjemmelagde og sprø', link: '/?anledning=annet' },
-    { icon: Shield, name: 'Sambosa', desc: 'Autentisk somalisk smak', link: '/?anledning=ramadan' },
+    { icon: Cake, name: 'Kaker', desc: 'Skreddersydde for deg', link: '/cakes' },
+    { icon: Heart, name: 'Cupcakes', desc: 'Dekorerte med kjærlighet', link: '/cupcakes' },
+    { icon: Cookie, name: 'Cookies', desc: 'Hjemmelagde og sprø', link: '/cookies' },
 ];
 
 /* ──────────────────── Main Component ──────────────────── */
@@ -126,15 +125,15 @@ export function HomeSections() {
                         </p>
                     </motion.div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
                         {products.map((prod, i) => (
-                            <Link key={prod.name} to={prod.link}>
+                            <Link key={prod.name} to={prod.link} className="h-full">
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     whileInView={{ opacity: 1, scale: 1 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: i * 0.08 }}
-                                    className="bg-card rounded-2xl p-6 border border-border/50 shadow-soft text-center hover:shadow-card hover:border-primary/30 transition-all duration-300 cursor-pointer"
+                                    className="bg-card rounded-sm p-6 border border-border/50 shadow-soft text-center hover:shadow-card hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full"
                                 >
                                     <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                                         <prod.icon className="w-6 h-6 text-primary" />

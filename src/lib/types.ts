@@ -1,4 +1,4 @@
-export type ProductCategory = 'cakes' | 'cupcakes' | 'cookies' | 'sambosa' | 'sabayad';
+export type ProductCategory = 'cakes' | 'cupcakes' | 'cookies' | 'sabayad';
 
 export interface Product {
   id: number;
@@ -7,6 +7,7 @@ export interface Product {
   price: number;
   imageUrl: string;
   category: ProductCategory;
+  minOrder?: number;
 }
 
 export interface CartItem {

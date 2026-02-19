@@ -12,7 +12,7 @@ const occasions: { id: Occasion; icon: React.ReactNode; description: string }[] 
   { id: 'bursdag', icon: <Cake className="w-8 h-8" />, description: 'Feir en spesiell dag' },
   { id: 'bryllup', icon: <Heart className="w-8 h-8" />, description: 'Kjærlighet i hvert lag' },
   { id: 'babyshower', icon: <Baby className="w-8 h-8" />, description: 'Velkommen lille en' },
-  { id: 'ramadan', icon: <Moon className="w-8 h-8" />, description: 'Ramadan Kareem' },
+
   { id: 'annet', icon: <Sparkles className="w-8 h-8" />, description: 'Bare fordi' },
 ];
 
@@ -32,7 +32,7 @@ export function OccasionSection({ selected, onSelect }: OccasionSectionProps) {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
         {occasions.map((occasion, index) => (
           <motion.button
             key={occasion.id}

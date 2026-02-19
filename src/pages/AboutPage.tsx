@@ -124,10 +124,10 @@ export default function AboutPage() {
 
                         <div className="space-y-6">
                             {[
-                                { name: 'Kaker', desc: 'Skreddersydde kaker for bryllup, bursdag, Eid og alle anledninger' },
+                                { name: 'Kaker', desc: 'Skreddersydde kaker for bryllup, bursdag og alle anledninger' },
                                 { name: 'Cupcakes', desc: 'Dekorerte cupcakes i ulike smaker — perfekt for fester og gaver' },
                                 { name: 'Cookies', desc: 'Hjemmelagde cookies som smelter på tungen' },
-                                { name: 'Sambosa', desc: 'Autentisk somalisk sambosa — sprø og full av smak' },
+
                                 { name: 'Sabayad', desc: 'Tradisjonelt somalisk brød, perfekt til frokost og middag' },
                             ].map((item) => (
                                 <div key={item.name} className="flex items-start gap-4 p-5 bg-card rounded-xl border border-border/50">

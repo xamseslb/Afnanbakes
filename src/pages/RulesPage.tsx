@@ -7,7 +7,7 @@ const sections = [
         icon: ScrollText,
         title: 'Slik bestiller du',
         items: [
-            'Velg ønsket produkt fra menyen vår (kaker, cupcakes, cookies, sambosa, sabayad).',
+            'Velg ønsket produkt fra menyen vår (kaker, cupcakes, cookies, sabayad).',
             'Fyll inn bestillingsskjemaet med anledning, beskrivelse og ønsker.',
             'Du mottar en ordrebekreftelse med referansenummer på e-post.',
             'Vi kontakter deg for å bekrefte bestillingen og avtale utlevering.',

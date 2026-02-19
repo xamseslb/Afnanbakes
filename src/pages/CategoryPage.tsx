@@ -6,14 +6,14 @@ import { ProductCategory } from '@/lib/types';
 import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
-import categorySambosa from '@/assets/category-sambosa.jpg';
+
 import categorySabayad from '@/assets/category-sabayad.jpg';
 
 const categoryImages: Record<ProductCategory, string> = {
   cakes: categoryCakes,
   cupcakes: categoryCupcakes,
   cookies: categoryCookies,
-  sambosa: categorySambosa,
+
   sabayad: categorySabayad,
 };
 

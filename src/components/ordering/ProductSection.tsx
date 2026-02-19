@@ -4,7 +4,7 @@ import { ProductType, productLabels } from '@/lib/orderTypes';
 import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
-import categorySambosa from '@/assets/category-sambosa.jpg';
+
 import categorySabayad from '@/assets/category-sabayad.jpg';
 
 interface ProductSectionProps {
@@ -17,7 +17,7 @@ const products: { id: ProductType; image: string }[] = [
   { id: 'cookies', image: categoryCookies },
   { id: 'cakepops', image: categoryCupcakes },
   { id: 'cupcakes', image: categoryCupcakes },
-  { id: 'sambosa', image: categorySambosa },
+
   { id: 'sabayad', image: categorySabayad },
 ];
 

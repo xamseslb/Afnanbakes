@@ -5,7 +5,7 @@ import { Cake, Heart, Moon, Baby, Check, ArrowRight, Sparkles, Star, ChevronDown
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-type OccasionTab = 'bursdag' | 'bryllup' | 'ramadan' | 'babyshower';
+type OccasionTab = 'bursdag' | 'bryllup' | 'babyshower';
 
 interface PackageItem {
     name: string;
@@ -19,6 +19,7 @@ interface OccasionData {
     label: string;
     icon: React.ReactNode;
     description: string;
+    image: string;
     packages: PackageItem[];
 }
 
@@ -28,6 +29,7 @@ const occasions: OccasionData[] = [
         label: 'Bursdag',
         icon: <Cake className="w-5 h-5" />,
         description: 'Feir bursdagen med hjemmebakte favoritter',
+        image: '/images/hero/Gemini_Generated_Image_9rjfcm9rjfcm9rjf.jpg',
         packages: [
             {
                 name: 'Liten Bursdag',
@@ -67,6 +69,7 @@ const occasions: OccasionData[] = [
         label: 'Bryllup',
         icon: <Heart className="w-5 h-5" />,
         description: 'Gjør den store dagen ekstra spesiell',
+        image: '/images/hero/Gemini_Generated_Image_v34wm2v34wm2v34w.jpg',
         packages: [
             {
                 name: 'Bryllup Elegant',
@@ -102,50 +105,13 @@ const occasions: OccasionData[] = [
             },
         ],
     },
-    {
-        id: 'ramadan',
-        label: 'Ramadan',
-        icon: <Moon className="w-5 h-5" />,
-        description: 'Autentisk somalisk bakst for Ramadan',
-        packages: [
-            {
-                name: 'Ramadan Familie',
-                price: 599,
-                items: [
-                    '20 sambosa',
-                    '10 sabayad',
-                    'Hjemmelaget med kjærlighet',
-                ],
-            },
-            {
-                name: 'Ramadan Feiring',
-                price: 1299,
-                popular: true,
-                items: [
-                    '40 sambosa',
-                    '20 sabayad',
-                    '1 kake (10 personer)',
-                    'Perfekt for iftar',
-                ],
-            },
-            {
-                name: 'Ramadan Storfeiring',
-                price: 2199,
-                items: [
-                    '60 sambosa',
-                    '30 sabayad',
-                    '1 kake',
-                    '24 cupcakes',
-                    'Ideell for store samlinger',
-                ],
-            },
-        ],
-    },
+
     {
         id: 'babyshower',
         label: 'Baby Shower',
         icon: <Baby className="w-5 h-5" />,
         description: 'Velkommen den lille med noe søtt',
+        image: '/images/hero/Gemini_Generated_Image_3xupkg3xupkg3xup.png',
         packages: [
             {
                 name: 'Baby Shower Sweet',
@@ -320,23 +286,45 @@ export default function PricingPage() {
                 </div>
             </section>
 
-            {/* Packages */}
-            <section className="py-16 md:py-24">
-                <div className="container mx-auto px-4">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {/* Occasion description */}
-                            <p className="text-center text-muted-foreground mb-12 text-lg">
-                                {activeOccasion.description}
-                            </p>
+            {/* Packages — immersive full-bleed with glassmorphism cards */}
+            <AnimatePresence mode="wait">
+                <motion.section
+                    key={activeTab}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="relative overflow-hidden"
+                >
+                    {/* Full-bleed background image */}
+                    <div className="absolute inset-0">
+                        <img
+                            src={activeOccasion.image}
+                            alt={activeOccasion.label}
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-foreground/25" />
+                    </div>
 
-                            {/* Cards grid */}
+                    {/* Content over background */}
+                    <div className="relative z-10 py-16 md:py-24">
+                        <div className="container mx-auto px-4">
+                            {/* Occasion title */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.15, duration: 0.5 }}
+                                className="text-center mb-12"
+                            >
+                                <h2 className="font-serif text-3xl md:text-4xl font-bold text-white mb-3">
+                                    {activeOccasion.label}
+                                </h2>
+                                <p className="text-white/80 text-lg max-w-lg mx-auto">
+                                    {activeOccasion.description}
+                                </p>
+                            </motion.div>
+
+                            {/* Glassmorphism cards */}
                             <div
                                 className={cn(
                                     'grid gap-6 max-w-5xl mx-auto',
@@ -348,20 +336,22 @@ export default function PricingPage() {
                                 {activeOccasion.packages.map((pkg, index) => (
                                     <motion.div
                                         key={pkg.name}
-                                        initial={{ opacity: 0, y: 30 }}
+                                        initial={{ opacity: 0, y: 40 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1, duration: 0.4 }}
+                                        transition={{ delay: 0.2 + index * 0.12, duration: 0.5 }}
+                                        whileHover={{ y: -6, transition: { duration: 0.25 } }}
                                         className={cn(
-                                            'relative rounded-2xl bg-card p-6 md:p-8 shadow-soft transition-all duration-300 hover:shadow-elevated flex flex-col',
+                                            'relative rounded-2xl p-6 md:p-8 flex flex-col transition-all duration-300',
+                                            'bg-white/90 backdrop-blur-xl shadow-lg hover:shadow-2xl',
                                             pkg.popular
-                                                ? 'border-2 border-primary ring-1 ring-primary/20 md:scale-105'
-                                                : 'border border-border/50'
+                                                ? 'border-2 border-primary ring-2 ring-primary/30 md:scale-105'
+                                                : 'border border-white/30'
                                         )}
                                     >
                                         {/* Popular badge */}
                                         {pkg.popular && (
                                             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                                <span className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-semibold px-4 py-1.5 rounded-full shadow-card">
+                                                <span className="inline-flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-semibold px-4 py-1.5 rounded-full shadow-lg">
                                                     <Star className="w-3 h-3 fill-current" />
                                                     Mest populær
                                                 </span>
@@ -369,7 +359,7 @@ export default function PricingPage() {
                                         )}
 
                                         {/* Package name */}
-                                        <h3 className="font-serif text-xl font-bold text-card-foreground mt-2">
+                                        <h3 className="font-serif text-xl font-bold text-foreground mt-2">
                                             {pkg.name}
                                         </h3>
 
@@ -382,12 +372,15 @@ export default function PricingPage() {
                                             <span className="text-lg text-muted-foreground"> kr</span>
                                         </div>
 
+                                        {/* Divider */}
+                                        <div className="w-12 h-0.5 bg-primary/40 rounded mb-6" />
+
                                         {/* Items list */}
                                         <ul className="space-y-3 mb-8 flex-1">
                                             {pkg.items.map((item) => (
                                                 <li key={item} className="flex items-start gap-3">
                                                     <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                                                    <span className="text-sm text-card-foreground">{item}</span>
+                                                    <span className="text-sm text-foreground">{item}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -398,7 +391,7 @@ export default function PricingPage() {
                                                 className={cn(
                                                     'w-full gap-2 rounded-full',
                                                     pkg.popular
-                                                        ? 'shadow-card'
+                                                        ? 'shadow-lg'
                                                         : ''
                                                 )}
                                                 variant={pkg.popular ? 'default' : 'outline'}
@@ -411,10 +404,10 @@ export default function PricingPage() {
                                     </motion.div>
                                 ))}
                             </div>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-            </section>
+                        </div>
+                    </div>
+                </motion.section>
+            </AnimatePresence>
 
             {/* FAQ Section */}
             <FaqSection />

@@ -88,41 +88,7 @@ export const occasionPackages: Partial<Record<Occasion, OccasionPackages>> = {
             },
         ],
     },
-    ramadan: {
-        packages: [
-            {
-                name: 'Ramadan Familie',
-                price: 599,
-                items: [
-                    '20 sambosa',
-                    '10 sabayad',
-                    'Hjemmelaget med kjærlighet',
-                ],
-            },
-            {
-                name: 'Ramadan Feiring',
-                price: 1299,
-                popular: true,
-                items: [
-                    '40 sambosa',
-                    '20 sabayad',
-                    '1 kake (10 personer)',
-                    'Perfekt for iftar',
-                ],
-            },
-            {
-                name: 'Ramadan Storfeiring',
-                price: 2199,
-                items: [
-                    '60 sambosa',
-                    '30 sabayad',
-                    '1 kake',
-                    '24 cupcakes',
-                    'Ideell for store samlinger',
-                ],
-            },
-        ],
-    },
+
     babyshower: {
         packages: [
             {

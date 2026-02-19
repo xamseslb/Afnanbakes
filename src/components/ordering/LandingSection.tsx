@@ -12,40 +12,40 @@ interface LandingSectionProps {
 const heroSlides = [
   {
     image: '/images/hero/Gemini_Generated_Image_hdop7uhdop7uhdop.jpg',
-    title: 'Kaker, Cupcakes & Mer',
-    subtitle: 'Håndlaget med kjærlighet i Oslo',
+    title: 'Cupcakes Med Kjærlighet',
+    subtitle: 'Fargerike og dekorerte — perfekt til enhver feiring',
   },
   {
     image: '/images/hero/Gemini_Generated_Image_ho4r4iho4r4iho4r.jpg',
-    title: 'For Alle Anledninger',
-    subtitle: 'Bryllup, bursdag, Eid & Baby Shower',
+    title: 'Hjemmelagde Cookies',
+    subtitle: 'Sprø, myke og uimotståelige smaker',
   },
   {
     image: '/images/hero/Gemini_Generated_Image_ig5ylfig5ylfig5y.jpg',
-    title: 'Skreddersydd For Deg',
-    subtitle: 'Fortell oss din visjon — vi baker drømmen',
+    title: 'Kaker For Enhver Smak',
+    subtitle: 'Fra klassisk til kreativ — vi har noe for alle',
   },
   {
     image: '/images/hero/Gemini_Generated_Image_si9vuesi9vuesi9v.jpg',
-    title: 'Autentisk Somalisk Bakst',
-    subtitle: 'Sambosa, kaker og mye mer',
+    title: 'Feir Bursdagen!',
+    subtitle: 'Skreddersydde bursdagskaker som gjør dagen magisk',
   },
   {
     image: '/images/hero/Gemini_Generated_Image_tnjsr2tnjsr2tnjs.jpg',
     title: 'Premium Kvalitet',
-    subtitle: 'De fineste ingrediensene, bakt med lidenskap',
+    subtitle: 'Luksuriøse smaker med de fineste ingrediensene',
   },
   {
     image: '/images/hero/Gemini_Generated_Image_yfycl6yfycl6yfyc.jpg',
-    title: 'Bestill I Dag',
-    subtitle: 'Enkel bestilling — vi ordner resten',
+    title: 'Drømmekaken Til Bryllupet',
+    subtitle: 'Elegante bryllupskaker med roser og gulldetaljer',
   },
 ];
 
 const occasionTags: { label: string; value: Occasion }[] = [
   { label: 'Bryllup', value: 'bryllup' },
   { label: 'Bursdag', value: 'bursdag' },
-  { label: 'Eid', value: 'ramadan' },
+
   { label: 'Baby Shower', value: 'babyshower' },
 ];
 

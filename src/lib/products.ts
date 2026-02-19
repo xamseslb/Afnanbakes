@@ -2,7 +2,7 @@ import { Product, Category } from './types';
 import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
-import categorySambosa from '@/assets/category-sambosa.jpg';
+
 import categorySabayad from '@/assets/category-sabayad.jpg';
 
 export const categories: Category[] = [
@@ -24,12 +24,7 @@ export const categories: Category[] = [
     description: 'Ferske og sprø hver dag',
     imageUrl: categoryCookies,
   },
-  {
-    id: 'sambosa',
-    name: 'Sambosa',
-    description: 'Autentisk somalisk smak',
-    imageUrl: categorySambosa,
-  },
+
   {
     id: 'sabayad',
     name: 'Sabayad',
@@ -39,7 +34,7 @@ export const categories: Category[] = [
 ];
 
 export const products: Product[] = [
-  // Cakes
+  // Cakes (no minimum order)
   {
     id: 1,
     name: 'Vanilla Dream',
@@ -72,7 +67,7 @@ export const products: Product[] = [
     imageUrl: categoryCakes,
     category: 'cakes',
   },
-  // Cupcakes
+  // Cupcakes (min 10 stk)
   {
     id: 5,
     name: 'Vanilje Cupcake',
@@ -80,6 +75,7 @@ export const products: Product[] = [
     price: 45,
     imageUrl: categoryCupcakes,
     category: 'cupcakes',
+    minOrder: 10,
   },
   {
     id: 6,
@@ -88,6 +84,7 @@ export const products: Product[] = [
     price: 50,
     imageUrl: categoryCupcakes,
     category: 'cupcakes',
+    minOrder: 10,
   },
   {
     id: 7,
@@ -96,8 +93,9 @@ export const products: Product[] = [
     price: 55,
     imageUrl: categoryCupcakes,
     category: 'cupcakes',
+    minOrder: 10,
   },
-  // Cookies
+  // Cookies (min 10 stk)
   {
     id: 8,
     name: 'Chocolate Chip',
@@ -105,6 +103,7 @@ export const products: Product[] = [
     price: 35,
     imageUrl: categoryCookies,
     category: 'cookies',
+    minOrder: 10,
   },
   {
     id: 9,
@@ -113,6 +112,7 @@ export const products: Product[] = [
     price: 40,
     imageUrl: categoryCookies,
     category: 'cookies',
+    minOrder: 10,
   },
   {
     id: 10,
@@ -121,25 +121,10 @@ export const products: Product[] = [
     price: 30,
     imageUrl: categoryCookies,
     category: 'cookies',
+    minOrder: 10,
   },
-  // Sambosa
-  {
-    id: 11,
-    name: 'Kjøtt Sambosa',
-    description: 'Sprø sambosa fylt med krydret kjøttdeig',
-    price: 25,
-    imageUrl: categorySambosa,
-    category: 'sambosa',
-  },
-  {
-    id: 12,
-    name: 'Grønnsak Sambosa',
-    description: 'Vegetarisk sambosa med krydrede grønnsaker',
-    price: 22,
-    imageUrl: categorySambosa,
-    category: 'sambosa',
-  },
-  // Sabayad
+
+  // Sabayad (min 10 stk)
   {
     id: 13,
     name: 'Klassisk Sabayad',
@@ -147,6 +132,7 @@ export const products: Product[] = [
     price: 35,
     imageUrl: categorySabayad,
     category: 'sabayad',
+    minOrder: 10,
   },
   {
     id: 14,
@@ -155,6 +141,7 @@ export const products: Product[] = [
     price: 45,
     imageUrl: categorySabayad,
     category: 'sabayad',
+    minOrder: 10,
   },
 ];
 

@@ -1,5 +1,5 @@
-export type Occasion = 'bursdag' | 'bryllup' | 'babyshower' | 'ramadan' | 'annet';
-export type ProductType = 'kaker' | 'cookies' | 'cakepops' | 'cupcakes' | 'sambosa' | 'sabayad';
+export type Occasion = 'bursdag' | 'bryllup' | 'babyshower' | 'annet';
+export type ProductType = 'kaker' | 'cookies' | 'cakepops' | 'cupcakes' | 'sabayad';
 
 export interface PackageOption {
   name: string;
@@ -30,7 +30,7 @@ export const occasionLabels: Record<Occasion, string> = {
   bursdag: 'Bursdag',
   bryllup: 'Bryllup',
   babyshower: 'Baby Shower',
-  ramadan: 'Ramadan',
+
   annet: 'Annet',
 };
 
@@ -39,6 +39,6 @@ export const productLabels: Record<ProductType, string> = {
   cookies: 'Cookies',
   cakepops: 'Cake Pops',
   cupcakes: 'Cupcakes',
-  sambosa: 'Sambosa',
+
   sabayad: 'Sabayad',
 };

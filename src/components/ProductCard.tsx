@@ -11,10 +11,17 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
+  const min = product.minOrder || 1;
 
   const handleAddToCart = () => {
-    addToCart(product);
-    toast.success(`${product.name} lagt til i handlekurven`);
+    for (let i = 0; i < min; i++) {
+      addToCart(product);
+    }
+    toast.success(
+      min > 1
+        ? `${min} × ${product.name} lagt til i handlekurven`
+        : `${product.name} lagt til i handlekurven`
+    );
   };
 
   return (
@@ -25,6 +32,13 @@ export function ProductCard({ product }: ProductCardProps) {
       transition={{ duration: 0.5 }}
       className="group relative overflow-hidden rounded-2xl bg-card shadow-soft transition-all duration-300 hover:shadow-elevated"
     >
+      {/* Min order badge */}
+      {min > 1 && (
+        <div className="absolute top-3 left-3 z-10 bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-md">
+          Min. {min} stk
+        </div>
+      )}
+
       {/* Image */}
       <div className="aspect-square overflow-hidden bg-secondary">
         <img
@@ -43,16 +57,23 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.description}
         </p>
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-lg font-semibold text-primary">
-            {product.price} kr
-          </span>
+          <div>
+            <span className="text-lg font-semibold text-primary">
+              {product.price} kr
+            </span>
+            {min > 1 && (
+              <span className="block text-xs text-muted-foreground">
+                {min} stk = {product.price * min} kr
+              </span>
+            )}
+          </div>
           <Button
             onClick={handleAddToCart}
             size="sm"
             className="gap-2 rounded-full"
           >
             <Plus className="h-4 w-4" />
-            Legg til
+            {min > 1 ? `${min} stk` : 'Legg til'}
           </Button>
         </div>
       </div>
@@ -69,7 +90,7 @@ export function ProductCard({ product }: ProductCardProps) {
           className="gap-2 rounded-full shadow-elevated"
         >
           <ShoppingBag className="h-5 w-5" />
-          Legg til i kurv
+          {min > 1 ? `Legg til ${min} stk` : 'Legg til i kurv'}
         </Button>
       </motion.div>
     </motion.div>

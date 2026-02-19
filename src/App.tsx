@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "@/hooks/useCart";
 import { Layout } from "@/components/layout/Layout";
 import Index from "./pages/Index";
@@ -22,6 +23,12 @@ import PricingPage from "./pages/PricingPage";
 const queryClient = new QueryClient();
 const ADMIN = import.meta.env.VITE_ADMIN_PATH || 'admin';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
@@ -29,6 +36,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public routes — wrapped with Header + Footer via Layout */}
             <Route element={<Layout />}>
@@ -39,7 +47,7 @@ const App = () => (
               <Route path="/cakes" element={<CategoryPage />} />
               <Route path="/cupcakes" element={<CategoryPage />} />
               <Route path="/cookies" element={<CategoryPage />} />
-              <Route path="/sambosa" element={<CategoryPage />} />
+
               <Route path="/sabayad" element={<CategoryPage />} />
               <Route path="/kanseller" element={<CancelOrder />} />
               <Route path="/om-oss" element={<AboutPage />} />
