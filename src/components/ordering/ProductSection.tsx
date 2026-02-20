@@ -1,10 +1,13 @@
+/**
+ * ProductSection — Valg av produkttype med bildekort.
+ * Steg 3 i bestillingsflyten.
+ */
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ProductType, productLabels } from '@/lib/orderTypes';
 import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
-
 import categorySabayad from '@/assets/category-sabayad.jpg';
 
 interface ProductSectionProps {
@@ -12,12 +15,12 @@ interface ProductSectionProps {
   onSelect: (product: ProductType) => void;
 }
 
+/** Produkttyper med tilhørende kategori-bilde */
 const products: { id: ProductType; image: string }[] = [
   { id: 'kaker', image: categoryCakes },
   { id: 'cookies', image: categoryCookies },
   { id: 'cakepops', image: categoryCupcakes },
   { id: 'cupcakes', image: categoryCupcakes },
-
   { id: 'sabayad', image: categorySabayad },
 ];
 

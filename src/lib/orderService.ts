@@ -1,7 +1,12 @@
+/**
+ * Bestillingstjeneste — Håndterer opplasting av bilder, generering av
+ * ordrereferanse, og innsending av bestillinger til Supabase.
+ */
 import { supabase } from './supabase';
 import { OrderData, occasionLabels, productLabels } from './orderTypes';
 import { sendConfirmationEmail } from './emailService';
 
+/** En ordrepost slik den lagres i Supabase-databasen */
 export interface OrderRecord {
     order_ref: string;
     customer_name: string;
@@ -22,8 +27,8 @@ export interface OrderRecord {
 }
 
 /**
- * Generate a human-readable order reference.
- * Format: AB-YYMMDD-XXXX (e.g. AB-250209-A3K7)
+ * Genererer en lesbar ordrereferanse.
+ * Format: AB-YYMMDD-XXXX (f.eks. AB-250209-A3K7)
  */
 export function generateOrderRef(): string {
     const now = new Date();
@@ -31,7 +36,8 @@ export function generateOrderRef(): string {
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
 
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I/O/0/1 to avoid confusion
+    // Unngår I/O/0/1 for å hindre forveksling
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
     for (let i = 0; i < 4; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -41,7 +47,8 @@ export function generateOrderRef(): string {
 }
 
 /**
- * Upload inspiration images to Supabase Storage and return their public URLs.
+ * Laster opp inspirasjonsbilder til Supabase Storage.
+ * Returnerer offentlige URL-er for de opplastede bildene.
  */
 async function uploadImages(images: File[]): Promise<string[]> {
     if (images.length === 0) return [];
@@ -58,7 +65,7 @@ async function uploadImages(images: File[]): Promise<string[]> {
             .upload(filePath, file);
 
         if (error) {
-            console.error('Image upload failed:', error.message);
+            console.error('Bildeopplasting feilet:', error.message);
             continue;
         }
 
@@ -73,19 +80,23 @@ async function uploadImages(images: File[]): Promise<string[]> {
 }
 
 /**
- * Submit an order to Supabase.
- * Uploads images first, then inserts the order record with a unique reference.
- * After success, sends a confirmation email (non-blocking).
+ * Sender en bestilling til Supabase.
+ * 1. Laster opp bilder
+ * 2. Genererer unik ordrereferanse
+ * 3. Lagrer ordren i databasen
+ * 4. Sender bekreftelsesmail (ikke-blokkerende)
  */
-export async function submitOrder(orderData: OrderData): Promise<{ success: boolean; orderRef?: string; error?: string }> {
+export async function submitOrder(
+    orderData: OrderData
+): Promise<{ success: boolean; orderRef?: string; error?: string }> {
     try {
-        // Upload images
+        // 1. Last opp bilder
         const imageUrls = await uploadImages(orderData.images);
 
-        // Generate unique order reference
+        // 2. Generer unik ordrereferanse
         const orderRef = generateOrderRef();
 
-        // Build the order record
+        // 3. Bygg ordrepost for databasen
         const record: OrderRecord = {
             order_ref: orderRef,
             customer_name: orderData.customerName,
@@ -110,19 +121,19 @@ export async function submitOrder(orderData: OrderData): Promise<{ success: bool
             .insert([record]);
 
         if (error) {
-            console.error('Order submission failed:', error.message);
+            console.error('Bestilling feilet:', error.message);
             return { success: false, error: error.message };
         }
 
-        // Send confirmation email (fire-and-forget, don't block the UI)
+        // 4. Send bekreftelsesmail (brann-og-glem, blokkerer ikke UI)
         sendConfirmationEmail(orderData, orderRef).catch((err) =>
-            console.error('Email sending failed:', err)
+            console.error('E-post sending feilet:', err)
         );
 
         return { success: true, orderRef };
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Ukjent feil';
-        console.error('Order submission error:', message);
+        console.error('Bestillingsfeil:', message);
         return { success: false, error: message };
     }
 }

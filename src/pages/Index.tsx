@@ -1,3 +1,7 @@
+/**
+ * Index — Forsiden og bestillingsflyten.
+ * Orkestrerer alle bestillingssteg: landing → anledning → pakke → detaljer → oppsummering → bekreftelse.
+ */
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';

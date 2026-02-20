@@ -1,3 +1,6 @@
+/**
+ * Layout — Wrapper for offentlige sider med Header og Footer.
+ */
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';

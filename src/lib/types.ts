@@ -1,5 +1,11 @@
+/**
+ * Generelle typer — Produkter, handlekurv og kategorier.
+ */
+
+/** Tilgjengelige produktkategorier i butikken */
 export type ProductCategory = 'cakes' | 'cupcakes' | 'cookies' | 'sabayad';
 
+/** Et enkelt produkt i katalogen */
 export interface Product {
   id: number;
   name: string;
@@ -10,6 +16,7 @@ export interface Product {
   minOrder?: number;
 }
 
+/** En vare i handlekurven */
 export interface CartItem {
   id: number;
   name: string;
@@ -18,6 +25,7 @@ export interface CartItem {
   imageUrl: string;
 }
 
+/** En produktkategori med visningsnavn og bilde */
 export interface Category {
   id: ProductCategory;
   name: string;

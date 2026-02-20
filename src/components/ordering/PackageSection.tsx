@@ -1,3 +1,7 @@
+/**
+ * PackageSection — Valg av pakke eller eget design.
+ * Viser tilgjengelige pakker basert på valgt anledning, med priser og innhold.
+ */
 import { motion } from 'framer-motion';
 import { Check, Palette, Star, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';

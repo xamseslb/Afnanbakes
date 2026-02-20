@@ -1,3 +1,6 @@
+/**
+ * Footer — Bunntekst med kontaktinfo, sosiale medier og copyright.
+ */
 import { Link } from 'react-router-dom';
 import { MapPin, Mail } from 'lucide-react';
 

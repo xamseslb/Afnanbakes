@@ -1,3 +1,7 @@
+/**
+ * ProgressIndicator — Visuell stepper som viser fremdriften i bestillingsflyten.
+ * Viser fullførte, aktive og kommende steg.
+ */
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -7,6 +11,7 @@ interface ProgressIndicatorProps {
   totalSteps: number;
 }
 
+/** Norske navn for hvert steg i bestillingsflyten */
 const stepLabels = ['Start', 'Anledning', 'Pakke', 'Detaljer', 'Oppsummering', 'Ferdig'];
 
 export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {

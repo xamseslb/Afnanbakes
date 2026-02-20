@@ -1,5 +1,10 @@
-import * as React from "react";
+/**
+ * useIsMobile — Sjekker om skjermen er mobilstørrelse (< 768px).
+ * Lytter på endringer i skjermbredde for responsivt design.
+ */
+import * as React from 'react';
 
+/** Grenseverdi for mobil i piksler */
 const MOBILE_BREAKPOINT = 768;
 
 export function useIsMobile() {
@@ -10,9 +15,9 @@ export function useIsMobile() {
     const onChange = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
-    mql.addEventListener("change", onChange);
+    mql.addEventListener('change', onChange);
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener("change", onChange);
+    return () => mql.removeEventListener('change', onChange);
   }, []);
 
   return !!isMobile;

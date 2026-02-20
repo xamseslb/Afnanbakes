@@ -1,3 +1,7 @@
+/**
+ * LandingSection — Hero-slideshow med automatisk crossfade og hurtigvalg for anledning.
+ * Vises som forsiden av bestillingsflyten.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -42,10 +46,10 @@ const heroSlides = [
   },
 ];
 
+/** Hurtigvalg-knapper for anledning under hero-seksjonen */
 const occasionTags: { label: string; value: Occasion }[] = [
   { label: 'Bryllup', value: 'bryllup' },
   { label: 'Bursdag', value: 'bursdag' },
-
   { label: 'Baby Shower', value: 'babyshower' },
 ];
 
@@ -60,7 +64,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   }, []);
 
-  // Auto-advance every 5 seconds
+  // Bytt bilde automatisk hvert 5. sekund
   useEffect(() => {
     const timer = setInterval(nextSlide, 5000);
     return () => clearInterval(timer);
@@ -72,7 +76,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
     <div className="w-full">
       {/* ── Full-Bleed Hero Carousel ── */}
       <section className="relative w-screen -ml-[calc((100vw-100%)/2)] h-[70vh] md:h-[85vh] overflow-hidden">
-        {/* Background images — all rendered, crossfade via opacity */}
+        {/* Bakgrunnsbilder — alle rendret, crossfade via opacity */}
         {heroSlides.map((s, i) => (
           <div
             key={i}
@@ -85,12 +89,12 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
               className="w-full h-full object-cover"
               loading={i === 0 ? 'eager' : 'lazy'}
             />
-            {/* Gradient overlay for readability */}
+            {/* Gradient-overlegg for lesbarhet */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
           </div>
         ))}
 
-        {/* Content overlay */}
+        {/* Tekstinnhold over bildene */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
           <AnimatePresence mode="wait">
             <motion.div
@@ -109,7 +113,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
             </motion.div>
           </AnimatePresence>
 
-          {/* CTA */}
+          {/* Handlingsknapp */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -126,7 +130,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
           </motion.div>
         </div>
 
-        {/* Navigation arrows */}
+        {/* Navigasjonspiler */}
         <button
           onClick={prevSlide}
           aria-label="Forrige bilde"
@@ -142,7 +146,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Slide indicators */}
+        {/* Bildeindikatorer */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
           {heroSlides.map((_, i) => (
             <button
@@ -156,7 +160,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
         </div>
       </section>
 
-      {/* ── Occasion Quick-Pick ── */}
+      {/* ── Hurtigvalg for anledning ── */}
       <section className="py-14 bg-background">
         <div className="container mx-auto px-4 text-center">
           <motion.div

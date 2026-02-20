@@ -1,3 +1,7 @@
+/**
+ * SectionWrapper — Animert wrapper for bestillingssteg.
+ * Glidende overgang (venstre/høyre) mellom stegene.
+ */
 import { motion, AnimatePresence } from 'framer-motion';
 import { ReactNode } from 'react';
 

@@ -1,3 +1,7 @@
+/**
+ * SuccessSection — Bekreftelsesside etter vellykket bestilling.
+ * Viser ordrereferanse, kontaktinfo og lenker til sosiale medier.
+ */
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Mail, Instagram, RefreshCw, Copy, CheckCheck, Send } from 'lucide-react';

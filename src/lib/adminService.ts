@@ -1,5 +1,10 @@
+/**
+ * Admin-tjeneste — Henter bestillinger, oppdaterer status, og beregner statistikk.
+ * Brukes av AdminDashboard og AdminOrders.
+ */
 import { supabase } from './supabase';
 
+/** En ordrepost slik den hentes fra Supabase (inkludert id og tidsstempel) */
 export interface OrderRow {
     id: string;
     created_at: string;
@@ -21,8 +26,10 @@ export interface OrderRow {
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
 }
 
+/** Ordrens mulige statuser */
 export type OrderStatus = OrderRow['status'];
 
+/** Norske navn for hver ordrestatus */
 export const statusLabels: Record<OrderStatus, string> = {
     pending: 'Ny',
     confirmed: 'Bekreftet',
@@ -30,6 +37,7 @@ export const statusLabels: Record<OrderStatus, string> = {
     cancelled: 'Kansellert',
 };
 
+/** Tailwind-farger for hver ordrestatus (brukes i badges) */
 export const statusColors: Record<OrderStatus, string> = {
     pending: 'bg-amber-100 text-amber-800',
     confirmed: 'bg-blue-100 text-blue-800',
@@ -37,9 +45,7 @@ export const statusColors: Record<OrderStatus, string> = {
     cancelled: 'bg-red-100 text-red-800',
 };
 
-/**
- * Fetch all orders, newest first.
- */
+/** Henter alle bestillinger, nyeste først */
 export async function fetchOrders(): Promise<OrderRow[]> {
     const { data, error } = await supabase
         .from('orders')
@@ -47,16 +53,14 @@ export async function fetchOrders(): Promise<OrderRow[]> {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Failed to fetch orders:', error.message);
+        console.error('Henting av bestillinger feilet:', error.message);
         return [];
     }
 
     return (data as OrderRow[]) || [];
 }
 
-/**
- * Update the status of an order.
- */
+/** Oppdaterer statusen til en bestilling */
 export async function updateOrderStatus(
     orderId: string,
     newStatus: OrderStatus
@@ -67,16 +71,14 @@ export async function updateOrderStatus(
         .eq('id', orderId);
 
     if (error) {
-        console.error('Failed to update order status:', error.message);
+        console.error('Statusoppdatering feilet:', error.message);
         return false;
     }
 
     return true;
 }
 
-/**
- * Get order stats (counts per status).
- */
+/** Beregner antall bestillinger per status */
 export function getOrderStats(orders: OrderRow[]) {
     return {
         pending: orders.filter((o) => o.status === 'pending').length,

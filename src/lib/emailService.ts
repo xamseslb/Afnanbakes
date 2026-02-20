@@ -1,6 +1,10 @@
+/**
+ * E-posttjeneste — Sender ordrebekreftelse via Supabase Edge Function (Resend).
+ */
 import { supabase } from './supabase';
 import { OrderData, occasionLabels, productLabels } from './orderTypes';
 
+/** Data som sendes til Edge Function for e-postlevering */
 interface EmailPayload {
     to: string;
     customerName: string;
@@ -14,8 +18,8 @@ interface EmailPayload {
 }
 
 /**
- * Send order confirmation email via Supabase Edge Function.
- * The Edge Function uses Resend to deliver the email.
+ * Sender ordrebekreftelse-e-post til kunden.
+ * Kaller Supabase Edge Function som bruker Resend for å levere e-posten.
  */
 export async function sendConfirmationEmail(
     orderData: OrderData,
@@ -39,14 +43,14 @@ export async function sendConfirmationEmail(
         });
 
         if (error) {
-            console.error('Email sending failed:', error.message);
+            console.error('E-post sending feilet:', error.message);
             return { success: false, error: error.message };
         }
 
         return { success: true };
     } catch (err) {
-        const message = err instanceof Error ? err.message : 'Email error';
-        console.error('Email service error:', message);
+        const message = err instanceof Error ? err.message : 'E-postfeil';
+        console.error('E-posttjeneste feil:', message);
         return { success: false, error: message };
     }
 }

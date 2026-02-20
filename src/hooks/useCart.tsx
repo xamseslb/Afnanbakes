@@ -1,6 +1,11 @@
+/**
+ * useCart — Handlekurv-kontekst med localStorage-persistering.
+ * Gir hele appen tilgang til handlekurvdata og operasjoner.
+ */
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product } from '@/lib/types';
 
+/** Grensesnitt for handlekurv-konteksten */
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product) => void;
@@ -13,18 +18,23 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+/** Nøkkel for lagring i localStorage */
 const CART_STORAGE_KEY = 'afnanbakes_cart';
 
+/** Provider som wrapper appen og tilbyr handlekurvfunksjonalitet */
 export function CartProvider({ children }: { children: ReactNode }) {
+  // Hent lagret handlekurv fra localStorage ved oppstart
   const [items, setItems] = useState<CartItem[]>(() => {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
 
+  // Synkroniser handlekurven til localStorage ved endringer
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
+  /** Legg til et produkt (øker antall hvis det allerede finnes) */
   const addToCart = (product: Product) => {
     setItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -46,10 +56,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  /** Fjern et produkt fra handlekurven */
   const removeFromCart = (productId: number) => {
     setItems((prev) => prev.filter((item) => item.id !== productId));
   };
 
+  /** Oppdater antall for et produkt (fjerner hvis 0 eller mindre) */
   const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -60,14 +72,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  /** Tøm hele handlekurven */
   const clearCart = () => {
     setItems([]);
   };
 
+  /** Beregn totalbeløp */
   const getCartTotal = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  /** Beregn totalt antall varer */
   const getCartCount = () => {
     return items.reduce((count, item) => count + item.quantity, 0);
   };
@@ -89,10 +104,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** Hook for å bruke handlekurven — må brukes innenfor CartProvider */
 export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error('useCart må brukes innenfor en CartProvider');
   }
   return context;
 }

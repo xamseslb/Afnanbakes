@@ -1,3 +1,6 @@
+/**
+ * CategoryPage — Viser alle produkter i en valgt kategori med hero-bilde.
+ */
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ProductCard } from '@/components/ProductCard';
@@ -6,14 +9,13 @@ import { ProductCategory } from '@/lib/types';
 import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
-
 import categorySabayad from '@/assets/category-sabayad.jpg';
 
+/** Bildekart for hver produktkategori — brukes i hero-seksjonen */
 const categoryImages: Record<ProductCategory, string> = {
   cakes: categoryCakes,
   cupcakes: categoryCupcakes,
   cookies: categoryCookies,
-
   sabayad: categorySabayad,
 };
 

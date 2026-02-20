@@ -1,3 +1,6 @@
+/**
+ * Shop — Butikksiden med kategorifilter og produktkort.
+ */
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ProductCard } from '@/components/ProductCard';

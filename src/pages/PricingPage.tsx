@@ -1,3 +1,6 @@
+/**
+ * PricingPage — Prisoversikt for alle produktkategorier med pakkealternativer.
+ */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';

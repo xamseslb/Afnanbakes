@@ -1,3 +1,6 @@
+/**
+ * CancelOrder — Side for å kansellere en bestilling via referanse og e-post.
+ */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XCircle, Search, Mail, AlertTriangle, CheckCircle2, ArrowLeft, Cake, ShieldCheck } from 'lucide-react';
@@ -29,6 +32,7 @@ export default function CancelOrder() {
             .single();
 
         if (error || !data) {
+            console.error('Kanselleringsfeil:', error?.message, error?.code, error?.details);
             setErrorMsg('Fant ingen bestilling med denne referansen. Sjekk at du har skrevet riktig.');
             setLoading(false);
             return;

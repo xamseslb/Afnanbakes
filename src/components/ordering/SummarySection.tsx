@@ -1,3 +1,7 @@
+/**
+ * SummarySection — Oppsummering av bestillingen før innsending.
+ * Viser alle valg og kundeinfo, med mulighet til å gå tilbake og redigere.
+ */
 import { motion } from 'framer-motion';
 import { Edit2, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

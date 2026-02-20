@@ -1,3 +1,6 @@
+/**
+ * Header — Navigasjonsmeny med logo, lenker og mobilmeny.
+ */
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ShoppingBag } from 'lucide-react';

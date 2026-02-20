@@ -1,3 +1,7 @@
+/**
+ * HomeSections — Forsidekort under hero-seksjonen.
+ * Inkluderer anmeldelser, «Slik fungerer det»-steg, og produktkategorier.
+ */
 import { motion } from 'framer-motion';
 import { Star, Cake, ClipboardList, Send, Truck, Heart, Cookie, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';

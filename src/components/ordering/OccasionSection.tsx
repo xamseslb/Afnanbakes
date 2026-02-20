@@ -1,3 +1,7 @@
+/**
+ * OccasionSection — Valg av anledning (bursdag, bryllup, baby shower, annet).
+ * Steg 2 i bestillingsflyten.
+ */
 import { motion } from 'framer-motion';
 import { Cake, Heart, Baby, Moon, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,11 +12,11 @@ interface OccasionSectionProps {
   onSelect: (occasion: Occasion) => void;
 }
 
+/** Anledninger med ikon og kort beskrivelse */
 const occasions: { id: Occasion; icon: React.ReactNode; description: string }[] = [
   { id: 'bursdag', icon: <Cake className="w-8 h-8" />, description: 'Feir en spesiell dag' },
   { id: 'bryllup', icon: <Heart className="w-8 h-8" />, description: 'Kjærlighet i hvert lag' },
   { id: 'babyshower', icon: <Baby className="w-8 h-8" />, description: 'Velkommen lille en' },
-
   { id: 'annet', icon: <Sparkles className="w-8 h-8" />, description: 'Bare fordi' },
 ];
 

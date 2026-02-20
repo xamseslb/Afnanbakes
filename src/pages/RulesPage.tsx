@@ -1,3 +1,6 @@
+/**
+ * RulesPage — Side med regler og vilkår for bestilling.
+ */
 import { motion } from 'framer-motion';
 import { ScrollText, Clock, XCircle, CreditCard, ShieldCheck, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';

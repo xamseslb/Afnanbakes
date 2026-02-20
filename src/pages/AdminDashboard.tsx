@@ -1,3 +1,6 @@
+/**
+ * AdminDashboard — Oversiktside med statistikk og siste bestillinger.
+ */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';

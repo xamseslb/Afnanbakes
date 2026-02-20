@@ -1,3 +1,7 @@
+/**
+ * DetailsSection — Kundeinfo-skjema og bildeopplasting.
+ * Steg 4 i bestillingsflyten: navn, e-post, telefon, beskrivelse og inspirasjonsbilder.
+ */
 import { motion } from 'framer-motion';
 import { Upload, X, User, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';

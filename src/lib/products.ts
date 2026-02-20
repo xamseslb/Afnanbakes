@@ -1,10 +1,13 @@
+/**
+ * Produktkatalog — Alle produkter, kategorier og hjelpefunksjoner.
+ */
 import { Product, Category } from './types';
 import categoryCakes from '@/assets/category-cakes.jpg';
 import categoryCupcakes from '@/assets/category-cupcakes.jpg';
 import categoryCookies from '@/assets/category-cookies.jpg';
-
 import categorySabayad from '@/assets/category-sabayad.jpg';
 
+/** Alle produktkategorier med visningsnavn og bilde */
 export const categories: Category[] = [
   {
     id: 'cakes',
@@ -24,7 +27,6 @@ export const categories: Category[] = [
     description: 'Ferske og sprø hver dag',
     imageUrl: categoryCookies,
   },
-
   {
     id: 'sabayad',
     name: 'Sabayad',
@@ -33,8 +35,9 @@ export const categories: Category[] = [
   },
 ];
 
+/** Komplett produktliste med priser og minimum-bestilling */
 export const products: Product[] = [
-  // Cakes (no minimum order)
+  // ── Kaker (ingen minimumsbestilling) ──
   {
     id: 1,
     name: 'Vanilla Dream',
@@ -67,7 +70,8 @@ export const products: Product[] = [
     imageUrl: categoryCakes,
     category: 'cakes',
   },
-  // Cupcakes (min 10 stk)
+
+  // ── Cupcakes (min. 10 stk) ──
   {
     id: 5,
     name: 'Vanilje Cupcake',
@@ -95,7 +99,8 @@ export const products: Product[] = [
     category: 'cupcakes',
     minOrder: 10,
   },
-  // Cookies (min 10 stk)
+
+  // ── Cookies (min. 10 stk) ──
   {
     id: 8,
     name: 'Chocolate Chip',
@@ -124,7 +129,7 @@ export const products: Product[] = [
     minOrder: 10,
   },
 
-  // Sabayad (min 10 stk)
+  // ── Sabayad (min. 10 stk) ──
   {
     id: 13,
     name: 'Klassisk Sabayad',
@@ -145,14 +150,17 @@ export const products: Product[] = [
   },
 ];
 
+/** Henter alle produkter i en gitt kategori */
 export const getProductsByCategory = (category: string): Product[] => {
   return products.filter((p) => p.category === category);
 };
 
+/** Henter et produkt basert på ID */
 export const getProductById = (id: number): Product | undefined => {
   return products.find((p) => p.id === id);
 };
 
+/** Henter et utvalg av produkter for forsiden (ett fra hver kategori) */
 export const getFeaturedProducts = (): Product[] => {
-  return [products[0], products[1], products[5], products[8], products[10], products[13]];
+  return [products[0], products[4], products[7], products[10]].filter(Boolean);
 };

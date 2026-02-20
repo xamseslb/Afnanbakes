@@ -1,3 +1,6 @@
+/**
+ * AboutPage — Om oss-siden med historien bak AfnanBakes.
+ */
 import { motion } from 'framer-motion';
 import { Cake, Heart, Star, MapPin, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';

@@ -1,3 +1,6 @@
+/**
+ * Cart — Handlekurvside med mulighet for å endre antall og tømme kurven.
+ */
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
