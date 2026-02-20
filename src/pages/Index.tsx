@@ -48,6 +48,11 @@ export default function Index() {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Scroll til toppen når bestillingssteget endres
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
+
   // Wrapper: push browser history when step changes so Chrome back button works
   const setCurrentStep = useCallback((stepOrFn: number | ((prev: number) => number)) => {
     setCurrentStepRaw((prev) => {

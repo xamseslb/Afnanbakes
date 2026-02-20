@@ -122,6 +122,10 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: auto !important;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;

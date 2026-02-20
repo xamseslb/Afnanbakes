@@ -2,7 +2,7 @@
  * App — Hovedkomponent med routing, providers og layout.
  * Setter opp React Query, handlekurv, toast-varsler og alle ruter.
  */
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -35,7 +35,49 @@ const ADMIN = import.meta.env.VITE_ADMIN_PATH || 'admin';
 /** Scroller til toppen ved navigasjon mellom sider */
 function ScrollToTop() {
   const { pathname } = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+
+  // Deaktiver nettleserens innebygde scroll-gjenoppretting
+  useLayoutEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  // Fang alle klikk på interne lenker og scroll til toppen
+  useLayoutEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
+      if (
+        anchor &&
+        anchor.href &&
+        anchor.origin === window.location.origin &&
+        !anchor.getAttribute('href')?.startsWith('#') &&
+        !anchor.getAttribute('target')
+      ) {
+        // Intern navigasjon — scroll til toppen umiddelbart
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          document.documentElement.scrollTop = 0;
+        }, 0);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+        }, 100);
+      }
+    };
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
+  }, []);
+
+  // Backup: scroll ved ruteendring
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    const t1 = setTimeout(() => window.scrollTo(0, 0), 0);
+    const t2 = setTimeout(() => window.scrollTo(0, 0), 100);
+    const t3 = setTimeout(() => window.scrollTo(0, 0), 300);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [pathname]);
+
   return null;
 }
 
