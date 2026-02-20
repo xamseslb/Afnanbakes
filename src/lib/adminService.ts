@@ -24,7 +24,7 @@ export interface OrderRow {
     quantity: string;
     image_urls: string[];
     delivery_date: string;
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    status: 'pending' | 'pending_payment' | 'confirmed' | 'completed' | 'cancelled';
 }
 
 /** Ordrens mulige statuser */
@@ -32,6 +32,7 @@ export type OrderStatus = OrderRow['status'];
 
 /** Norske navn for hver ordrestatus */
 export const statusLabels: Record<OrderStatus, string> = {
+    pending_payment: 'Venter betaling',
     pending: 'Ny',
     confirmed: 'Bekreftet',
     completed: 'Fullført',
@@ -40,6 +41,7 @@ export const statusLabels: Record<OrderStatus, string> = {
 
 /** Tailwind-farger for hver ordrestatus (brukes i badges) */
 export const statusColors: Record<OrderStatus, string> = {
+    pending_payment: 'bg-purple-100 text-purple-800',
     pending: 'bg-amber-100 text-amber-800',
     confirmed: 'bg-blue-100 text-blue-800',
     completed: 'bg-emerald-100 text-emerald-800',
@@ -82,6 +84,7 @@ export async function updateOrderStatus(
 /** Beregner antall bestillinger per status */
 export function getOrderStats(orders: OrderRow[]) {
     return {
+        pending_payment: orders.filter((o) => o.status === 'pending_payment').length,
         pending: orders.filter((o) => o.status === 'pending').length,
         confirmed: orders.filter((o) => o.status === 'confirmed').length,
         completed: orders.filter((o) => o.status === 'completed').length,

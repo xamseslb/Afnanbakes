@@ -24,7 +24,7 @@ export interface OrderRecord {
     quantity: string;
     image_urls: string[];
     delivery_date: string;
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    status: 'pending' | 'pending_payment' | 'confirmed' | 'completed' | 'cancelled';
 }
 
 /**
@@ -81,7 +81,54 @@ async function uploadImages(images: File[]): Promise<string[]> {
 }
 
 /**
- * Sender en bestilling til Supabase.
+ * Oppretter en Stripe Checkout-session via Edge Function.
+ * Returnerer URL til Stripe Checkout-siden.
+ * Brukes for bestillinger med fast pris (ikke «Eget design»).
+ */
+export async function createCheckoutSession(
+    orderData: OrderData
+): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
+    try {
+        // 1. Last opp bilder først
+        const imageUrls = await uploadImages(orderData.images);
+
+        // 2. Kall Edge Function
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+            body: {
+                customerName: orderData.customerName,
+                customerEmail: orderData.customerEmail,
+                customerPhone: orderData.customerPhone,
+                occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
+                productType: orderData.productType ? productLabels[orderData.productType] : '',
+                packageName: orderData.selectedPackage?.name || '',
+                packagePrice: orderData.selectedPackage?.price || 0,
+                quantity: orderData.quantity || '1',
+                description: orderData.description,
+                ideas: orderData.ideas,
+                cakeName: orderData.cakeName,
+                cakeText: orderData.cakeText,
+                deliveryDate: orderData.deliveryDate,
+                imageUrls,
+                isCustomDesign: orderData.isCustomDesign,
+            },
+        });
+
+        if (error) {
+            console.error('Checkout session feilet:', error.message);
+            return { success: false, error: error.message };
+        }
+
+        return { success: true, url: data.url, orderRef: data.orderRef };
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Ukjent feil';
+        console.error('Checkout-feil:', message);
+        return { success: false, error: message };
+    }
+}
+
+/**
+ * Sender en bestilling til Supabase (uten betaling).
+ * Brukes for «Eget design»-bestillinger uten fast pris.
  * 1. Laster opp bilder
  * 2. Genererer unik ordrereferanse
  * 3. Lagrer ordren i databasen
@@ -139,3 +186,4 @@ export async function submitOrder(
         return { success: false, error: message };
     }
 }
+

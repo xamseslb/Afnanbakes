@@ -153,8 +153,10 @@ export function SummarySection({ orderData, onEdit, onConfirm, isSubmitting = fa
           >
             {isSubmitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Sender...</>
+            ) : orderData.selectedPackage?.price && !orderData.isCustomDesign ? (
+              <><Check className="w-4 h-4" /> Betal {orderData.selectedPackage.price.toLocaleString('nb-NO')} kr</>
             ) : (
-              <><Check className="w-4 h-4" /> Bekreft bestilling</>
+              <><Check className="w-4 h-4" /> Send forespørsel</>
             )}
           </Button>
         </div>

@@ -21,6 +21,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
 import AdminCalendar from './pages/AdminCalendar';
 import CancelOrder from './pages/CancelOrder';
+import OrderConfirmation from './pages/OrderConfirmation';
 import AboutPage from './pages/AboutPage';
 import RulesPage from './pages/RulesPage';
 import PricingPage from './pages/PricingPage';
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/cookies" element={<CategoryPage />} />
               <Route path="/sabayad" element={<CategoryPage />} />
               <Route path="/kanseller" element={<CancelOrder />} />
+              <Route path="/ordre-bekreftelse" element={<OrderConfirmation />} />
               <Route path="/om-oss" element={<AboutPage />} />
               <Route path="/regler" element={<RulesPage />} />
             </Route>

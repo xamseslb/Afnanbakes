@@ -16,7 +16,7 @@ import { SummarySection } from '@/components/ordering/SummarySection';
 import { SuccessSection } from '@/components/ordering/SuccessSection';
 import { DatePickerSection } from '@/components/ordering/DatePickerSection';
 import { OrderData, Occasion, PackageOption } from '@/lib/orderTypes';
-import { submitOrder } from '@/lib/orderService';
+import { submitOrder, createCheckoutSession } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
 import { HomeSections } from '@/components/ordering/HomeSections';
 
@@ -145,18 +145,39 @@ export default function Index() {
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
-    const result = await submitOrder(orderData);
-    setIsSubmitting(false);
 
-    if (result.success) {
-      setOrderRef(result.orderRef || null);
-      goNext();
+    // Sjekk om bestillingen har en fast pris (ikke eget design)
+    const hasPrice = orderData.selectedPackage?.price && !orderData.isCustomDesign;
+
+    if (hasPrice) {
+      // Stripe Checkout — redirect til betalingsside
+      const result = await createCheckoutSession(orderData);
+      setIsSubmitting(false);
+
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else {
+        toast({
+          title: 'Noe gikk galt',
+          description: 'Kunne ikke starte betaling. Prøv igjen.',
+          variant: 'destructive',
+        });
+      }
     } else {
-      toast({
-        title: 'Noe gikk galt',
-        description: 'Bestillingen kunne ikke sendes. Prøv igjen senere.',
-        variant: 'destructive',
-      });
+      // Eget design — send bestilling direkte uten betaling
+      const result = await submitOrder(orderData);
+      setIsSubmitting(false);
+
+      if (result.success) {
+        setOrderRef(result.orderRef || null);
+        goNext();
+      } else {
+        toast({
+          title: 'Noe gikk galt',
+          description: 'Bestillingen kunne ikke sendes. Prøv igjen senere.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
