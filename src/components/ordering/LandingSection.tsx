@@ -51,6 +51,7 @@ const occasionTags: { label: string; value: Occasion }[] = [
   { label: 'Bryllup', value: 'bryllup' },
   { label: 'Bursdag', value: 'bursdag' },
   { label: 'Baby Shower', value: 'babyshower' },
+  { label: 'Annet', value: 'annet' },
 ];
 
 export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProps) {
