@@ -71,7 +71,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
   return (
     <div className="w-full">
       {/* ── Full-Bleed Hero Carousel ── */}
-      <section className="relative w-screen -ml-[calc((100vw-100%)/2)] h-[50vh] md:h-[65vh] overflow-hidden">
+      <section className="relative w-screen -ml-[calc((100vw-100%)/2)] h-[70vh] md:h-[85vh] overflow-hidden">
         {/* Background images — all rendered, crossfade via opacity */}
         {heroSlides.map((s, i) => (
           <div
