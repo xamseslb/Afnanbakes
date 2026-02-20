@@ -1,6 +1,6 @@
 import { Navigate, Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, ClipboardList, LogOut, Cake, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, CalendarDays, LogOut, Cake, ChevronLeft } from 'lucide-react';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 
@@ -9,6 +9,7 @@ const ADMIN = import.meta.env.VITE_ADMIN_PATH || 'admin';
 const navItems = [
     { to: `/${ADMIN}/dashboard`, label: 'Oversikt', icon: LayoutDashboard },
     { to: `/${ADMIN}/orders`, label: 'Bestillinger', icon: ClipboardList },
+    { to: `/${ADMIN}/calendar`, label: 'Kalender', icon: CalendarDays },
 ];
 
 export default function AdminLayout() {

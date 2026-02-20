@@ -36,6 +36,7 @@ import {
     type OrderRow,
     type OrderStatus,
 } from '@/lib/adminService';
+import { formatNorwegianDate } from '@/lib/calendarService';
 
 const allStatuses: OrderStatus[] = ['pending', 'confirmed', 'completed', 'cancelled'];
 
@@ -191,6 +192,12 @@ export default function AdminOrders() {
                     <p className="text-sm text-muted-foreground">
                         Bestilt {formatDate(selectedOrder.created_at)}
                     </p>
+                    {selectedOrder.delivery_date && (
+                        <p className="text-sm font-medium text-primary mt-1 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            Leveres: {formatNorwegianDate(selectedOrder.delivery_date)}
+                        </p>
+                    )}
                 </div>
 
                 {/* To kolonner på desktop */}
@@ -386,6 +393,7 @@ export default function AdminOrders() {
                     <button
                         onClick={() => setSearchQuery('')}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        title="Tøm søk"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -474,6 +482,12 @@ export default function AdminOrders() {
                                                     </span>
                                                 )}
                                             </div>
+                                            {order.delivery_date && (
+                                                <p className="text-xs text-primary font-medium mt-1 flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    Leveres: {new Date(order.delivery_date + 'T00:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end sm:gap-1.5">
                                             {order.occasion && (

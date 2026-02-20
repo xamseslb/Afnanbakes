@@ -14,12 +14,13 @@ import { PackageSection, occasionPackages } from '@/components/ordering/PackageS
 import { DetailsSection } from '@/components/ordering/DetailsSection';
 import { SummarySection } from '@/components/ordering/SummarySection';
 import { SuccessSection } from '@/components/ordering/SuccessSection';
+import { DatePickerSection } from '@/components/ordering/DatePickerSection';
 import { OrderData, Occasion, PackageOption } from '@/lib/orderTypes';
 import { submitOrder } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
 import { HomeSections } from '@/components/ordering/HomeSections';
 
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 const initialOrderData: OrderData = {
   occasion: null,
@@ -34,6 +35,7 @@ const initialOrderData: OrderData = {
   cakeName: '',
   cakeText: '',
   quantity: '',
+  deliveryDate: '',
   images: [],
 };
 
@@ -117,7 +119,7 @@ export default function Index() {
 
   const handleOccasionSelect = (occasion: Occasion) => {
     setDirection('forward');
-    // "Annet" has no packages — skip straight to details as custom design
+    // "Annet" has no packages — skip straight to date picker as custom design
     if (occasion === 'annet') {
       setOrderData((prev) => ({ ...prev, occasion, selectedPackage: null, isCustomDesign: true }));
       setTimeout(() => setCurrentStep(4), 300);
@@ -249,6 +251,14 @@ export default function Index() {
               )}
 
               {currentStep === 4 && (
+                <DatePickerSection
+                  selectedDate={orderData.deliveryDate}
+                  onSelect={(date) => setOrderData((prev) => ({ ...prev, deliveryDate: date }))}
+                  onContinue={goNext}
+                />
+              )}
+
+              {currentStep === 5 && (
                 <DetailsSection
                   orderData={orderData}
                   onUpdate={handleDetailsUpdate}
@@ -256,16 +266,16 @@ export default function Index() {
                 />
               )}
 
-              {currentStep === 5 && (
+              {currentStep === 6 && (
                 <SummarySection
                   orderData={orderData}
-                  onEdit={() => goToStep(4)}
+                  onEdit={() => goToStep(5)}
                   onConfirm={handleConfirm}
                   isSubmitting={isSubmitting}
                 />
               )}
 
-              {currentStep === 6 && (
+              {currentStep === 7 && (
                 <SuccessSection orderRef={orderRef} onNewOrder={handleNewOrder} />
               )}
             </motion.div>

@@ -30,6 +30,7 @@ export interface OrderData {
   cakeName: string;
   cakeText: string;
   quantity: string;
+  deliveryDate: string;
   images: File[];
 }
 

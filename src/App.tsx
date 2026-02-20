@@ -19,6 +19,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminOrders from './pages/AdminOrders';
+import AdminCalendar from './pages/AdminCalendar';
 import CancelOrder from './pages/CancelOrder';
 import AboutPage from './pages/AboutPage';
 import RulesPage from './pages/RulesPage';
@@ -66,6 +67,7 @@ const App = () => (
             <Route element={<AdminLayout />}>
               <Route path={`/${ADMIN}/dashboard`} element={<AdminDashboard />} />
               <Route path={`/${ADMIN}/orders`} element={<AdminOrders />} />
+              <Route path={`/${ADMIN}/calendar`} element={<AdminCalendar />} />
             </Route>
 
             {/* ── 404 — alle ukjente ruter ── */}

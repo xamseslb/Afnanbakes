@@ -23,6 +23,7 @@ export interface OrderRecord {
     cake_text: string;
     quantity: string;
     image_urls: string[];
+    delivery_date: string;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
 }
 
@@ -113,6 +114,7 @@ export async function submitOrder(
             cake_text: orderData.cakeText,
             quantity: orderData.quantity,
             image_urls: imageUrls,
+            delivery_date: orderData.deliveryDate,
             status: 'pending',
         };
 

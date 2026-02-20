@@ -23,6 +23,7 @@ export interface OrderRow {
     cake_text: string;
     quantity: string;
     image_urls: string[];
+    delivery_date: string;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
 }
 

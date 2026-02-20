@@ -15,6 +15,7 @@ interface EmailPayload {
     description: string;
     cakeName: string;
     cakeText: string;
+    deliveryDate: string;
 }
 
 /**
@@ -36,6 +37,7 @@ export async function sendConfirmationEmail(
             description: orderData.description,
             cakeName: orderData.cakeName,
             cakeText: orderData.cakeText,
+            deliveryDate: orderData.deliveryDate,
         };
 
         const { error } = await supabase.functions.invoke('send-order-confirmation', {

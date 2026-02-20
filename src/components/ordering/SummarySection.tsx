@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Edit2, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OrderData, occasionLabels, productLabels } from '@/lib/orderTypes';
+import { formatNorwegianDate } from '@/lib/calendarService';
 
 interface SummarySectionProps {
   orderData: OrderData;
@@ -27,6 +28,10 @@ export function SummarySection({ orderData, onEdit, onConfirm, isSubmitting = fa
     {
       label: 'Telefon',
       value: orderData.customerPhone,
+    },
+    {
+      label: 'Leveringsdato',
+      value: orderData.deliveryDate ? formatNorwegianDate(orderData.deliveryDate) : '-',
     },
     {
       label: 'Anledning',
