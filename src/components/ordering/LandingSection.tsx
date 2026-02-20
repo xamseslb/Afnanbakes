@@ -31,7 +31,7 @@ const heroSlides = [
     subtitle: 'Skreddersydde bursdagskaker som gjør dagen magisk',
   },
   {
-    image: '/images/hero/Gemini_Generated_Image_tnjsr2tnjsr2tnjs.jpg',
+    image: '/images/hero/Gemini_Generated_Image_3xupkg3xupkg3xup.png',
     title: 'Premium Kvalitet',
     subtitle: 'Luksuriøse smaker med de fineste ingrediensene',
   },
