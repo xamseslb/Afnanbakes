@@ -72,25 +72,23 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
     <div className="w-full">
       {/* ── Full-Bleed Hero Carousel ── */}
       <section className="relative w-screen -ml-[calc((100vw-100%)/2)] h-[70vh] md:h-[85vh] overflow-hidden">
-        {/* Background image */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="absolute inset-0"
+        {/* Background images — all rendered, crossfade via opacity */}
+        {heroSlides.map((s, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+            style={{ opacity: i === currentSlide ? 1 : 0 }}
           >
             <img
-              src={slide.image}
-              alt={slide.title}
+              src={s.image}
+              alt={s.title}
               className="w-full h-full object-cover"
+              loading={i === 0 ? 'eager' : 'lazy'}
             />
             {/* Gradient overlay for readability */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ))}
 
         {/* Content overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
