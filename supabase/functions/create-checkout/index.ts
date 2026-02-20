@@ -97,9 +97,9 @@ serve(async (req: Request) => {
         });
 
         if (dbError) {
-            console.error('DB insert error:', dbError);
+            console.error('DB insert error:', JSON.stringify(dbError));
             return new Response(
-                JSON.stringify({ error: 'Kunne ikke lagre ordre' }),
+                JSON.stringify({ error: 'Kunne ikke lagre ordre', details: dbError.message, code: dbError.code }),
                 { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
