@@ -14,11 +14,6 @@ const heroSlides = [
     subtitle: 'Fargerike og dekorerte — perfekt til enhver feiring',
   },
   {
-    image: '/images/hero/Gemini_Generated_Image_ho4r4iho4r4iho4r.jpg',
-    title: 'Hjemmelagde Cookies',
-    subtitle: 'Sprø, myke og uimotståelige smaker',
-  },
-  {
     image: '/images/hero/Gemini_Generated_Image_ig5ylfig5ylfig5y.jpg',
     title: 'Kaker For Enhver Smak',
     subtitle: 'Fra klassisk til kreativ — vi har noe for alle',
@@ -43,7 +38,6 @@ const heroSlides = [
 const categoryLinks = [
   { label: 'Kaker', to: '/cakes' },
   { label: 'Cupcakes', to: '/cupcakes' },
-  { label: 'Cookies', to: '/cookies' },
 ];
 
 export function LandingSection() {

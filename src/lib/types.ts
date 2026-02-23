@@ -3,7 +3,7 @@
  */
 
 /** Tilgjengelige produktkategorier i butikken */
-export type ProductCategory = 'cakes' | 'cupcakes' | 'cookies' | 'sabayad';
+export type ProductCategory = 'cakes' | 'cupcakes';
 
 /** Et enkelt produkt i katalogen */
 export interface Product {

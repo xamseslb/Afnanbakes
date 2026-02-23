@@ -12,7 +12,6 @@ const menuLinks = [
   { href: '/', label: 'Hjem' },
   { href: '/cakes', label: 'Kaker' },
   { href: '/cupcakes', label: 'Cupcakes' },
-  { href: '/cookies', label: 'Cookies' },
   { href: '/om-oss', label: 'Om oss' },
   { href: '/kanseller', label: 'Kanseller bestilling' },
 ];

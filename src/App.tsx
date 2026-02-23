@@ -99,8 +99,6 @@ const App = () => (
               <Route path="/cakes/:id" element={<ProductDetailPage />} />
               <Route path="/cupcakes" element={<CategoryPage />} />
               <Route path="/cupcakes/:id" element={<ProductDetailPage />} />
-              <Route path="/cookies" element={<CategoryPage />} />
-              <Route path="/cookies/:id" element={<ProductDetailPage />} />
               <Route path="/kanseller" element={<CancelOrder />} />
               <Route path="/ordre-bekreftelse" element={<OrderConfirmation />} />
               <Route path="/om-oss" element={<AboutPage />} />

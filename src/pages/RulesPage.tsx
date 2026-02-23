@@ -10,7 +10,7 @@ const sections = [
         icon: ScrollText,
         title: 'Slik bestiller du',
         items: [
-            'Velg ønsket produkt fra menyen vår (kaker, cupcakes, cookies, sabayad).',
+            'Velg ønsket produkt fra menyen vår (kaker og cupcakes).',
             'Fyll inn bestillingsskjemaet med anledning, beskrivelse og ønsker.',
             'Du mottar en ordrebekreftelse med referansenummer på e-post.',
             'Vi kontakter deg for å bekrefte bestillingen og avtale utlevering.',
@@ -22,7 +22,7 @@ const sections = [
         items: [
             'Kaker bør bestilles minst 3–5 dager i forveien for å sikre best mulig kvalitet.',
             'Større bestillinger (bryllup, store fester) bør bestilles minst 1–2 uker i forveien.',
-            'Cupcakes, cookies og annet småbakst kan bestilles med kortere frist.',
+            'Cupcakes kan bestilles med kortere frist.',
             'Kontakt oss på e-post hvis du har det travelt — vi prøver alltid å hjelpe!',
         ],
     },

@@ -20,16 +20,6 @@ const categoryDescriptions: Record<ProductCategory, { title: string; intro: stri
     intro: 'Små mesterverk — store på smak og glede.',
     info: 'Perfekte til fester, gaver eller bare fordi du fortjener noe godt. Vi lager cupcakes i minimum 6 stk, nøye dekorert og klar til henting etter avtale.',
   },
-  cookies: {
-    title: 'COOKIES',
-    intro: 'Hjemmelagde cookies — bakt med kjærlighet og de fineste ingrediensene.',
-    info: 'Sprø utenpå, myke inni og fulle av smak. Bestilles i minimum 10 stk og bakes ferske til deg. Perfekte som gave, til kaffekosen eller bare for å unne seg noe godt.',
-  },
-  sabayad: {
-    title: 'SABAYAD',
-    intro: 'Tradisjonelt somalisk flatbrød — hjemmelagd med kjærlighet!',
-    info: 'Sabayad bestilles i minimum 10 stk. Perfekt til frokost, lunsj eller middag.',
-  },
 };
 
 export default function CategoryPage() {

@@ -18,18 +18,6 @@ export const categories: Category[] = [
     description: 'Små biter av lykke',
     imageUrl: '',
   },
-  {
-    id: 'cookies',
-    name: 'Cookies',
-    description: 'Ferske og sprø cookies',
-    imageUrl: '',
-  },
-  {
-    id: 'sabayad',
-    name: 'Sabayad',
-    description: 'Tradisjonelt somalisk flatbrød',
-    imageUrl: '',
-  },
 ];
 
 /** Komplett produktliste — bilder legges til etter hvert */
@@ -105,65 +93,8 @@ export const products: Product[] = [
     category: 'cupcakes',
     minOrder: 6,
   },
-
-  // ── Cookies (min. 10 stk) ──
-  {
-    id: 9,
-    name: 'Chocolate Chip Cookies',
-    description: 'Klassisk cookie med sjokoladebiter',
-    price: 40,
-    imageUrl: '',
-    category: 'cookies',
-    minOrder: 10,
-  },
-  {
-    id: 10,
-    name: 'Double Chocolate Cookies',
-    description: 'For de som elsker ekstra sjokolade',
-    price: 45,
-    imageUrl: '',
-    category: 'cookies',
-    minOrder: 10,
-  },
-  {
-    id: 11,
-    name: 'Havrecookies',
-    description: 'Hjemmelaget havrecookie med rosiner',
-    price: 35,
-    imageUrl: '',
-    category: 'cookies',
-    minOrder: 10,
-  },
-  {
-    id: 12,
-    name: 'Peanøttsmør Cookies',
-    description: 'Søt og salt peanøttsmør cookie',
-    price: 45,
-    imageUrl: '',
-    category: 'cookies',
-    minOrder: 10,
-  },
-
-  // ── Sabayad (min. 10 stk) ──
-  {
-    id: 13,
-    name: 'Klassisk Sabayad',
-    description: 'Tradisjonelt somalisk flatbrød',
-    price: 35,
-    imageUrl: '',
-    category: 'sabayad',
-    minOrder: 10,
-  },
-  {
-    id: 14,
-    name: 'Honning Sabayad',
-    description: 'Sabayad toppet med honning og smør',
-    price: 45,
-    imageUrl: '',
-    category: 'sabayad',
-    minOrder: 10,
-  },
 ];
+
 
 /** Henter alle produkter i en gitt kategori */
 export const getProductsByCategory = (category: string): Product[] =>
@@ -175,4 +106,5 @@ export const getProductById = (id: number): Product | undefined =>
 
 /** Henter et utvalg av produkter for forsiden */
 export const getFeaturedProducts = (): Product[] =>
-  products.filter((_, i) => [0, 4, 8, 12].includes(i));
+  products.filter((_, i) => [0, 4].includes(i));
+

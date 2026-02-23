@@ -568,6 +568,77 @@ export default function ProductDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {/* ── FAQ Accordion ── */}
+            <div className="mt-16 border-t border-border/40 pt-10 max-w-2xl mx-auto px-4 pb-20">
+                <FaqAccordion />
+            </div>
+        </div>
+    );
+}
+
+/* ── FAQ Accordion Component ── */
+const faqItems = [
+    {
+        title: 'Henteinformasjon',
+        content:
+            'Henting skjer etter nærmere avtale på valgt dato. Du vil motta en bekreftelse på e-post med mer informasjon om hentestedet og tidspunktet etter at bestillingen er bekreftet.',
+    },
+    {
+        title: 'Allergener',
+        content:
+            'Alle produkter inneholder mel (gluten), egg og melkeprodukter. Nøtter kan forekomme i noen produkter. Ta kontakt med oss på forhånd dersom du har allergier eller intoleranse, så gjør vi vårt beste for å tilpasse.',
+    },
+    {
+        title: 'Transport og oppbevaring',
+        content:
+            'Produktene pakkes forsiktig for transport. Hold kaken kjølig (kjøleskap) frem til servering. Ta den ut 30–60 minutter før du skal spise den slik at den tempereres og smaken blomstrer.',
+    },
+    {
+        title: 'Spørsmål?',
+        content:
+            'Ikke nøl med å kontakte oss! Send oss en melding på Instagram @AfnanBakes eller via kontaktskjemaet. Vi svarer så raskt vi kan.',
+    },
+];
+
+function FaqAccordion() {
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+    return (
+        <div className="divide-y divide-border/50">
+            {faqItems.map((item, i) => (
+                <div key={item.title}>
+                    <button
+                        type="button"
+                        aria-expanded={openIndex === i}
+                        title={item.title}
+                        className="w-full flex items-center justify-between py-4 text-left text-sm font-medium text-foreground hover:text-primary transition-colors"
+                        onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                    >
+                        <span>{item.title}</span>
+                        <ChevronRight
+                            className={`w-4 h-4 shrink-0 transition-transform duration-200 ${openIndex === i ? 'rotate-90' : ''
+                                }`}
+                        />
+                    </button>
+                    <AnimatePresence initial={false}>
+                        {openIndex === i && (
+                            <motion.div
+                                key="content"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                className="overflow-hidden"
+                            >
+                                <p className="pb-5 text-sm text-muted-foreground leading-relaxed">
+                                    {item.content}
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            ))}
         </div>
     );
 }

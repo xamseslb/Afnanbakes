@@ -6,7 +6,7 @@
 export type Occasion = 'bursdag' | 'bryllup' | 'babyshower' | 'annet';
 
 /** Tilgjengelige produkttyper */
-export type ProductType = 'kaker' | 'cookies' | 'cakepops' | 'cupcakes' | 'sabayad';
+export type ProductType = 'kaker' | 'cupcakes';
 
 /** Kakestørrelse med pris */
 export interface CakeSize {
@@ -114,8 +114,6 @@ export const occasionLabels: Record<Occasion, string> = {
 /** Norske navn for hver produkttype — brukes i UI og e-poster */
 export const productLabels: Record<ProductType, string> = {
   kaker: 'Kaker',
-  cookies: 'Cookies',
-  cakepops: 'Cake Pops',
   cupcakes: 'Cupcakes',
-  sabayad: 'Sabayad',
 };
+
