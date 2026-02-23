@@ -183,7 +183,7 @@ export default function ProductDetailPage() {
             const result = await submitOrder(orderData as Parameters<typeof submitOrder>[0]);
             setIsSubmitting(false);
             if (result.success) {
-                navigate('/ordre-bekreftelse');
+                navigate('/ordre-bekreftelse?status=success');
             } else {
                 toast({ title: 'Noe gikk galt', description: 'Prøv igjen litt senere.', variant: 'destructive' });
             }
