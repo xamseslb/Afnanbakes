@@ -590,9 +590,9 @@ const faqItems = [
             'Alle produkter inneholder mel (gluten), egg og melkeprodukter. Nøtter kan forekomme i noen produkter. Ta kontakt med oss på forhånd dersom du har allergier eller intoleranse, så gjør vi vårt beste for å tilpasse.',
     },
     {
-        title: 'Transport og oppbevaring',
+        title: 'Oppbevaring',
         content:
-            'Produktene pakkes forsiktig for transport. Hold kaken kjølig (kjøleskap) frem til servering. Ta den ut 30–60 minutter før du skal spise den slik at den tempereres og smaken blomstrer.',
+            'Du besøker oss på avtalt dato og vi gir deg kaken direkte. Frem til da oppbevares kaken i kjøleskap hos oss så den er fersk og klar når du ankommer.',
     },
     {
         title: 'Spørsmål?',
