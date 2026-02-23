@@ -15,6 +15,7 @@ export default function OrderConfirmation() {
     const [copied, setCopied] = useState(false);
 
     const isSuccess = status === 'success';
+    const isCustom = searchParams.get('type') === 'custom';
 
     function copyRef() {
         if (orderRef) {
@@ -57,7 +58,9 @@ export default function OrderConfirmation() {
                     transition={{ delay: 0.3 }}
                     className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4"
                 >
-                    {isSuccess ? 'Betaling mottatt! 🎉' : 'Betaling avbrutt'}
+                    {isSuccess
+                        ? (isCustom ? 'Forespørsel mottatt! 🎉' : 'Betaling mottatt! 🎉')
+                        : 'Betaling avbrutt'}
                 </motion.h1>
 
                 <motion.p
@@ -67,7 +70,9 @@ export default function OrderConfirmation() {
                     className="text-muted-foreground text-lg mb-8"
                 >
                     {isSuccess
-                        ? 'Takk for bestillingen! Vi har mottatt betalingen din og sender en bekreftelse på e-post.'
+                        ? (isCustom
+                            ? 'Takk for forespørselen! Vi tar kontakt med deg innen kort tid for å bekrefte detaljer og pris.'
+                            : 'Takk for bestillingen! Vi har mottatt betalingen din og sender en bekreftelse på e-post.')
                         : 'Betalingen ble ikke fullført. Bestillingen din er lagret — du kan prøve igjen ved å kontakte oss.'}
                 </motion.p>
 
