@@ -10,9 +10,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const menuLinks = [
   { href: '/', label: 'Hjem' },
-  { href: '/priser', label: 'Priser' },
+  { href: '/cakes', label: 'Kaker' },
+  { href: '/cupcakes', label: 'Cupcakes' },
+  { href: '/cookies', label: 'Cookies' },
   { href: '/om-oss', label: 'Om oss' },
-  { href: '/regler', label: 'Slik fungerer det' },
   { href: '/kanseller', label: 'Kanseller bestilling' },
 ];
 

@@ -12,7 +12,7 @@ interface ProgressIndicatorProps {
 }
 
 /** Norske navn for hvert steg i bestillingsflyten */
-const stepLabels = ['Start', 'Anledning', 'Pakke', 'Detaljer', 'Oppsummering', 'Ferdig'];
+const stepLabels = ['Start', 'Anledning', 'Bestill', 'Ferdig'];
 
 export function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
   return (

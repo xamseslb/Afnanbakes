@@ -130,8 +130,6 @@ export default function AboutPage() {
                                 { name: 'Kaker', desc: 'Skreddersydde kaker for bryllup, bursdag og alle anledninger' },
                                 { name: 'Cupcakes', desc: 'Dekorerte cupcakes i ulike smaker — perfekt for fester og gaver' },
                                 { name: 'Cookies', desc: 'Hjemmelagde cookies som smelter på tungen' },
-
-                                { name: 'Sabayad', desc: 'Tradisjonelt somalisk brød, perfekt til frokost og middag' },
                             ].map((item) => (
                                 <div key={item.name} className="flex items-start gap-4 p-5 bg-card rounded-xl border border-border/50">
                                     <div className="w-2 h-2 bg-primary rounded-full mt-2.5 shrink-0" />

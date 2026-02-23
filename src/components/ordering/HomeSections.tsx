@@ -39,13 +39,13 @@ const testimonials = [
 const steps = [
     {
         icon: ClipboardList,
-        title: 'Velg & bestill',
-        desc: 'Velg anledning, pakke og fyll inn dine ønsker i bestillingsskjemaet.',
+        title: 'Velg produkt',
+        desc: 'Bla gjennom kaker, cupcakes og cookies — finn det som passer deg.',
     },
     {
         icon: Send,
-        title: 'Vi bekrefter',
-        desc: 'Du mottar bekreftelse på e-post, og vi avtaler detaljer og pris.',
+        title: 'Tilpass & bestill',
+        desc: 'Velg størrelse, smak, farge og dekor. Fyll inn leveringsdato og kontaktinfo.',
     },
     {
         icon: Cake,

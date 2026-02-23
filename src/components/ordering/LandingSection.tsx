@@ -1,17 +1,11 @@
 /**
- * LandingSection — Hero-slideshow med automatisk crossfade og hurtigvalg for anledning.
- * Vises som forsiden av bestillingsflyten.
+ * LandingSection — Hero-slideshow med kategori-navigering.
+ * Knapper lenker nå direkte til kategori-sider istedenfor bestillingsflyt.
  */
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Occasion } from '@/lib/orderTypes';
-
-interface LandingSectionProps {
-  onStart: () => void;
-  onSelectOccasion?: (occasion: Occasion) => void;
-}
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const heroSlides = [
   {
@@ -46,15 +40,13 @@ const heroSlides = [
   },
 ];
 
-/** Hurtigvalg-knapper for anledning under hero-seksjonen */
-const occasionTags: { label: string; value: Occasion }[] = [
-  { label: 'Bryllup', value: 'bryllup' },
-  { label: 'Bursdag', value: 'bursdag' },
-  { label: 'Baby Shower', value: 'babyshower' },
-  { label: 'Annet', value: 'annet' },
+const categoryLinks = [
+  { label: 'Kaker', to: '/cakes' },
+  { label: 'Cupcakes', to: '/cupcakes' },
+  { label: 'Cookies', to: '/cookies' },
 ];
 
-export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProps) {
+export function LandingSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const nextSlide = useCallback(() => {
@@ -65,7 +57,6 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   }, []);
 
-  // Bytt bilde automatisk hvert 5. sekund
   useEffect(() => {
     const timer = setInterval(nextSlide, 5000);
     return () => clearInterval(timer);
@@ -77,7 +68,6 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
     <div className="w-full">
       {/* ── Full-Bleed Hero Carousel ── */}
       <section className="relative w-screen -ml-[calc((100vw-100%)/2)] h-[70vh] md:h-[85vh] overflow-hidden">
-        {/* Bakgrunnsbilder — alle rendret, crossfade via opacity */}
         {heroSlides.map((s, i) => (
           <div
             key={i}
@@ -90,12 +80,11 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
               className="w-full h-full object-cover"
               loading={i === 0 ? 'eager' : 'lazy'}
             />
-            {/* Gradient-overlegg for lesbarhet */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-transparent" />
           </div>
         ))}
 
-        {/* Tekstinnhold over bildene */}
+        {/* Tekst over bildene */}
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
           <AnimatePresence mode="wait">
             <motion.div
@@ -108,26 +97,28 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
               <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg">
                 {slide.title}
               </h1>
-              <p className="text-lg md:text-2xl text-white/90 mb-8 drop-shadow-md max-w-2xl mx-auto">
+              <p className="text-lg md:text-2xl text-white/90 drop-shadow-md max-w-2xl mx-auto">
                 {slide.subtitle}
               </p>
             </motion.div>
           </AnimatePresence>
 
-          {/* Handlingsknapp */}
+          {/* Kategori-knapper over hero */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
+            className="mt-8 flex flex-wrap gap-3 justify-center"
           >
-            <Button
-              size="lg"
-              onClick={onStart}
-              className="gap-2 rounded-full text-lg px-8 py-6 bg-white text-foreground hover:bg-white/90 shadow-elevated transition-all duration-300"
-            >
-              Bestill nå
-              <ArrowRight className="w-5 h-5" />
-            </Button>
+            {categoryLinks.map((cat) => (
+              <Link
+                key={cat.to}
+                to={cat.to}
+                className="px-6 py-2.5 bg-white/90 backdrop-blur-sm text-foreground font-semibold rounded-full text-sm hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                {cat.label}
+              </Link>
+            ))}
           </motion.div>
         </div>
 
@@ -147,7 +138,7 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
           <ChevronRight className="w-5 h-5" />
         </button>
 
-        {/* Bildeindikatorer */}
+        {/* Bildeindikator-dots */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
           {heroSlides.map((_, i) => (
             <button
@@ -158,40 +149,6 @@ export function LandingSection({ onStart, onSelectOccasion }: LandingSectionProp
                 }`}
             />
           ))}
-        </div>
-      </section>
-
-      {/* ── Hurtigvalg for anledning ── */}
-      <section className="py-14 bg-background">
-        <div className="container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Hva feirer du?
-            </h2>
-            <p className="text-muted-foreground text-lg mb-8">
-              Velg anledning og kom rett til bestillingen
-            </p>
-          </motion.div>
-
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {occasionTags.map((tag, i) => (
-              <motion.button
-                key={tag.value}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                onClick={() => onSelectOccasion?.(tag.value)}
-                className="px-6 py-3 bg-card border border-border/50 rounded-full text-base font-medium text-foreground shadow-soft hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-elevated transition-all duration-300 cursor-pointer"
-              >
-                {tag.label}
-              </motion.button>
-            ))}
-          </div>
         </div>
       </section>
     </div>

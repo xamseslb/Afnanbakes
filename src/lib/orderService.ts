@@ -3,7 +3,7 @@
  * ordrereferanse, og innsending av bestillinger til Supabase.
  */
 import { supabase } from './supabase';
-import { OrderData, occasionLabels, productLabels } from './orderTypes';
+import { OrderData, occasionLabels, productLabels, PHOTO_ADDON_PRICE } from './orderTypes';
 import { sendConfirmationEmail } from './emailService';
 
 /** En ordrepost slik den lagres i Supabase-databasen */
@@ -100,8 +100,12 @@ export async function createCheckoutSession(
                 customerPhone: orderData.customerPhone,
                 occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
                 productType: orderData.productType ? productLabels[orderData.productType] : '',
-                packageName: orderData.selectedPackage?.name || '',
-                packagePrice: orderData.selectedPackage?.price || 0,
+                packageName: orderData.selectedSize
+                    ? `${occasionLabels[orderData.occasion!]}-kake (${orderData.selectedSize.persons})`
+                    : orderData.selectedPackage?.name || '',
+                packagePrice: orderData.selectedSize
+                    ? orderData.selectedSize.price + (orderData.withPhoto ? PHOTO_ADDON_PRICE : 0)
+                    : orderData.selectedPackage?.price || 0,
                 quantity: orderData.quantity || '1',
                 description: orderData.description,
                 ideas: orderData.ideas,
@@ -110,6 +114,12 @@ export async function createCheckoutSession(
                 deliveryDate: orderData.deliveryDate,
                 imageUrls,
                 isCustomDesign: orderData.isCustomDesign,
+                // Nye felter
+                size: orderData.selectedSize?.label || '',
+                sizePersons: orderData.selectedSize?.persons || '',
+                flavor: orderData.selectedFlavor?.label || '',
+                color: orderData.selectedColor?.label || '',
+                withPhoto: orderData.withPhoto,
             },
         });
 
@@ -152,10 +162,19 @@ export async function submitOrder(
             customer_phone: orderData.customerPhone,
             occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
             product_type: orderData.productType ? productLabels[orderData.productType] : '',
-            package_name: orderData.selectedPackage?.name || (orderData.isCustomDesign ? 'Eget design' : ''),
-            package_price: orderData.selectedPackage?.price ?? null,
+            package_name: orderData.selectedSize
+                ? `${occasionLabels[orderData.occasion!]}-kake (${orderData.selectedSize.persons})`
+                : orderData.selectedPackage?.name || (orderData.isCustomDesign ? 'Eget design' : ''),
+            package_price: orderData.selectedSize
+                ? orderData.selectedSize.price + (orderData.withPhoto ? PHOTO_ADDON_PRICE : 0)
+                : orderData.selectedPackage?.price ?? null,
             is_custom_design: orderData.isCustomDesign,
-            description: orderData.description,
+            description: [
+                orderData.description,
+                orderData.selectedFlavor ? `Smak: ${orderData.selectedFlavor.label}` : '',
+                orderData.selectedColor ? `Farge: ${orderData.selectedColor.label}` : '',
+                orderData.withPhoto ? 'Med spiselig bilde (+200 kr)' : '',
+            ].filter(Boolean).join(' | '),
             ideas: orderData.ideas,
             cake_name: orderData.cakeName,
             cake_text: orderData.cakeText,
