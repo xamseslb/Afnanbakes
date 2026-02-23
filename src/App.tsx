@@ -25,6 +25,7 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import AboutPage from './pages/AboutPage';
 import RulesPage from './pages/RulesPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import CustomOrderPage from './pages/CustomOrderPage';
 
 /** React Query klient for datahenting */
 const queryClient = new QueryClient();
@@ -99,6 +100,7 @@ const App = () => (
               <Route path="/cakes/:id" element={<ProductDetailPage />} />
               <Route path="/cupcakes" element={<CategoryPage />} />
               <Route path="/cupcakes/:id" element={<ProductDetailPage />} />
+              <Route path="/custom" element={<CustomOrderPage />} />
               <Route path="/kanseller" element={<CancelOrder />} />
               <Route path="/ordre-bekreftelse" element={<OrderConfirmation />} />
               <Route path="/om-oss" element={<AboutPage />} />

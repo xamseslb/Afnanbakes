@@ -3,7 +3,7 @@
  * Inkluderer anmeldelser, «Slik fungerer det»-steg, og produktkategorier.
  */
 import { motion } from 'framer-motion';
-import { Star, Cake, ClipboardList, Send, Truck, Heart, Shield } from 'lucide-react';
+import { Star, Cake, ClipboardList, Send, Truck, Heart, Shield, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
@@ -63,6 +63,7 @@ const steps = [
 const products = [
     { icon: Cake, name: 'Kaker', desc: 'Skreddersydde for deg', link: '/cakes' },
     { icon: Heart, name: 'Cupcakes', desc: 'Dekorerte med kjærlighet', link: '/cupcakes' },
+    { icon: Sparkles, name: 'Custom', desc: 'Fortell oss drømmen din', link: '/custom' },
 ];
 
 /* ──────────────────── Main Component ──────────────────── */

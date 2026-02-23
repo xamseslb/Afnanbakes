@@ -38,6 +38,7 @@ const heroSlides = [
 const categoryLinks = [
   { label: 'Kaker', to: '/cakes' },
   { label: 'Cupcakes', to: '/cupcakes' },
+  { label: 'Custom', to: '/custom' },
 ];
 
 export function LandingSection() {
