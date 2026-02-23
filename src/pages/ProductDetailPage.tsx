@@ -22,7 +22,7 @@ import {
     CAKE_SIZES, CAKE_FLAVORS, CAKE_COLORS, PHOTO_ADDON_PRICE,
 } from '@/lib/orderTypes';
 import { fetchAvailability, formatNorwegianDate, type DateAvailability } from '@/lib/calendarService';
-import { createCheckoutSession, submitOrder } from '@/lib/orderService';
+import { createCheckoutSession } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
 import { ProductCategory } from '@/lib/types';
 
@@ -168,25 +168,19 @@ export default function ProductDetailPage() {
             quantity: String(quantity),
             deliveryDate,
             images,
-        } as const;
+            // For cupcakes/cookies: gi prisen direkte siden de ikke har selectedSize
+            directPrice: !isCakeCategory(category || '')
+                ? product.price * quantity + (withPhoto ? PHOTO_ADDON_PRICE : 0)
+                : undefined,
+        };
 
-        // If has size-based price → Stripe
-        if (isCakeCategory(category || '')) {
-            const result = await createCheckoutSession(orderData as Parameters<typeof createCheckoutSession>[0]);
-            setIsSubmitting(false);
-            if (result.success && result.url) {
-                window.location.href = result.url;
-            } else {
-                toast({ title: 'Noe gikk galt', description: 'Kunne ikke starte betaling.', variant: 'destructive' });
-            }
+        // Alle produkter går gjennom Stripe
+        const result = await createCheckoutSession(orderData as Parameters<typeof createCheckoutSession>[0]);
+        setIsSubmitting(false);
+        if (result.success && result.url) {
+            window.location.href = result.url;
         } else {
-            const result = await submitOrder(orderData as Parameters<typeof submitOrder>[0]);
-            setIsSubmitting(false);
-            if (result.success) {
-                navigate('/ordre-bekreftelse?status=success');
-            } else {
-                toast({ title: 'Noe gikk galt', description: 'Prøv igjen litt senere.', variant: 'destructive' });
-            }
+            toast({ title: 'Noe gikk galt', description: 'Kunne ikke starte betaling.', variant: 'destructive' });
         }
     };
 

@@ -100,6 +100,7 @@ export interface OrderData {
   quantity: string;
   deliveryDate: string;
   images: File[];
+  directPrice?: number; // Brukes for produkter uten selectedSize/selectedPackage (cupcakes, cookies)
 }
 
 /** Norske navn for hver anledning — brukes i UI og e-poster */

@@ -101,11 +101,11 @@ export async function createCheckoutSession(
                 occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
                 productType: orderData.productType ? productLabels[orderData.productType] : '',
                 packageName: orderData.selectedSize
-                    ? `${occasionLabels[orderData.occasion!]}-kake (${orderData.selectedSize.persons})`
-                    : orderData.selectedPackage?.name || '',
+                    ? `${orderData.cakeName || 'Kake'} (${orderData.selectedSize.persons})`
+                    : orderData.selectedPackage?.name || orderData.cakeName || 'Bestilling',
                 packagePrice: orderData.selectedSize
                     ? orderData.selectedSize.price + (orderData.withPhoto ? PHOTO_ADDON_PRICE : 0)
-                    : orderData.selectedPackage?.price || 0,
+                    : orderData.selectedPackage?.price || orderData.directPrice || 0,
                 quantity: orderData.quantity || '1',
                 description: orderData.description,
                 ideas: orderData.ideas,
