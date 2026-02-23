@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ImagePlus, X, User, Mail, Phone,
-    Loader2, Send, ChevronLeft, ChevronRight,
+    Loader2, Send, ChevronLeft, ChevronRight, CalendarDays,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -259,73 +259,69 @@ export default function CustomOrderPage() {
 
                 {/* ── Kalender ── */}
                 <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
-                    <p className="text-sm font-semibold text-foreground mb-3">Ønsket hentedato</p>
+                    <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                        <CalendarDays className="w-4 h-4" /> Ønsket hentedato *
+                    </p>
 
                     {calLoading ? (
-                        <div className="flex items-center justify-center h-48 text-muted-foreground text-sm gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" /> Laster kalender...
+                        <div className="flex items-center justify-center h-32">
+                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
                         </div>
                     ) : (
-                        <div className="border border-border rounded-2xl p-4 bg-card">
+                        <div className="bg-card rounded-xl border border-border/50 overflow-hidden">
                             {/* Navigasjon */}
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
                                 <button
                                     type="button"
-                                    title="Forrige måned"
-                                    onClick={() => setCurrentMonth((m) => {
-                                        const d = new Date(m.year, m.month - 1);
-                                        return { year: d.getFullYear(), month: d.getMonth() };
-                                    })}
+                                    aria-label="Forrige måned"
+                                    onClick={() => setCurrentMonth((p) => p.month === 0 ? { year: p.year - 1, month: 11 } : { ...p, month: p.month - 1 })}
                                     disabled={!canGoPrev}
-                                    className="p-1.5 rounded-lg hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    className="p-1.5 rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
                                 </button>
-                                <span className="text-sm font-semibold">
+                                <span className="font-serif font-semibold text-sm">
                                     {MONTHS_NB[currentMonth.month]} {currentMonth.year}
                                 </span>
                                 <button
                                     type="button"
-                                    title="Neste måned"
-                                    onClick={() => setCurrentMonth((m) => {
-                                        const d = new Date(m.year, m.month + 1);
-                                        return { year: d.getFullYear(), month: d.getMonth() };
-                                    })}
+                                    aria-label="Neste måned"
+                                    onClick={() => setCurrentMonth((p) => p.month === 11 ? { year: p.year + 1, month: 0 } : { ...p, month: p.month + 1 })}
                                     disabled={!canGoNext}
-                                    className="p-1.5 rounded-lg hover:bg-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                    className="p-1.5 rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
                                 >
                                     <ChevronRight className="w-4 h-4" />
                                 </button>
                             </div>
 
                             {/* Ukedager */}
-                            <div className="grid grid-cols-7 mb-2">
+                            <div className="grid grid-cols-7 px-2 py-1">
                                 {WEEKDAYS.map((d) => (
-                                    <div key={d} className="text-center text-xs text-muted-foreground font-medium py-1">{d}</div>
+                                    <div key={d} className="text-center text-xs text-muted-foreground py-1">{d}</div>
                                 ))}
                             </div>
 
                             {/* Dager */}
-                            <div className="grid grid-cols-7 gap-1">
+                            <div className="grid grid-cols-7 gap-0.5 px-2 pb-2">
                                 {calendarDays.map((day, i) => {
                                     if (!day) return <div key={`e-${i}`} />;
                                     const status = getDayStatus(day.dateStr, day.date);
-                                    const isSelected = deliveryDate === day.dateStr;
-                                    const isBlocked = status === 'blocked' || status === 'past';
+                                    const isSel = deliveryDate === day.dateStr;
+                                    const isAvail = status === 'available';
+                                    const isFull = status === 'full' || status === 'blocked';
                                     return (
                                         <button
                                             key={day.dateStr}
                                             type="button"
-                                            disabled={isBlocked}
-                                            onClick={() => !isBlocked && setDeliveryDate(day.dateStr)}
+                                            onClick={() => isAvail && setDeliveryDate(day.dateStr)}
+                                            disabled={!isAvail}
                                             className={[
-                                                'aspect-square rounded-lg text-sm font-medium transition-all flex items-center justify-center',
-                                                isSelected
-                                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                                    : isBlocked
-                                                        ? 'text-muted-foreground/30 cursor-not-allowed line-through'
-                                                        : 'hover:bg-primary/10 text-foreground cursor-pointer',
-                                            ].join(' ')}
+                                                'aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-all',
+                                                isSel ? 'bg-primary text-primary-foreground shadow-sm' : '',
+                                                !isSel && isAvail ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer' : '',
+                                                isFull ? 'bg-red-50 text-red-400 cursor-not-allowed' : '',
+                                                status === 'past' ? 'text-muted-foreground/30 cursor-not-allowed' : '',
+                                            ].filter(Boolean).join(' ')}
                                         >
                                             {day.date.getDate()}
                                         </button>
@@ -334,23 +330,20 @@ export default function CustomOrderPage() {
                             </div>
 
                             {/* Legend */}
-                            <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1.5">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block" /> Valgt
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-muted inline-block" /> Ikke tilgjengelig
-                                </span>
+                            <div className="px-3 py-2 border-t border-border/50 bg-muted/20 flex gap-4 justify-center text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" />Ledig</span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" />Opptatt</span>
                             </div>
                         </div>
                     )}
 
                     {deliveryDate && (
-                        <p className="text-xs text-primary mt-2 font-medium">
-                            ✓ Valgt dato: {new Date(deliveryDate + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        <p className="text-sm text-primary font-medium mt-2">
+                            ✓ Valgt: {new Date(deliveryDate + 'T12:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </p>
                     )}
                 </motion.div>
+
 
                 {/* ── Kontaktinfo ── */}
                 <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
