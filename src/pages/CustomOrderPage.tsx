@@ -36,6 +36,7 @@ export default function CustomOrderPage() {
 
     const [images, setImages] = useState<File[]>([]);
     const [description, setDescription] = useState('');
+    const [deliveryDate, setDeliveryDate] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -71,7 +72,7 @@ export default function CustomOrderPage() {
                 cake_text: '',
                 quantity: '',
                 image_urls: imageUrls,
-                delivery_date: '',
+                delivery_date: deliveryDate || null,
                 status: 'pending',
             };
 
@@ -85,7 +86,7 @@ export default function CustomOrderPage() {
                     selectedPackage: null, selectedFlavor: null, selectedColor: null,
                     withPhoto: false, isCustomDesign: true, description,
                     ideas: '', cakeName: '', cakeText: '', quantity: '',
-                    images: [], deliveryDate: '',
+                    images: [], deliveryDate: deliveryDate,
                 },
                 orderRef
             ).catch((err) => console.error('E-post feilet:', err));
@@ -179,6 +180,21 @@ export default function CustomOrderPage() {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         className="resize-none"
+                    />
+                </motion.div>
+
+                {/* ── Dato ── */}
+                <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}>
+                    <label className="block text-sm font-semibold text-foreground mb-2">
+                        Ønsket hentedato
+                    </label>
+                    <input
+                        type="date"
+                        title="Velg hentedato"
+                        className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        value={deliveryDate}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
                     />
                 </motion.div>
 
