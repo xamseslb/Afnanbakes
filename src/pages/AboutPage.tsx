@@ -49,7 +49,7 @@ export default function AboutPage() {
                         <p className="text-muted-foreground leading-relaxed text-lg">
                             AfnanBakes ble startet med en enkel drøm — å dele gleden av hjemmelaget bakst med alle rundt oss.
                             Det som begynte som en hobby på kjøkkenet, har vokst til et bakeri som spesialiserer seg på
-                            alt fra elegante bryllupskaker til autentisk somalisk bakst.
+                            alt fra elegante bryllupskaker til fargerike cupcakes.
                         </p>
 
                         <p className="text-muted-foreground leading-relaxed text-lg">
@@ -89,7 +89,7 @@ export default function AboutPage() {
                                 {
                                     icon: Cake,
                                     title: 'Tradisjon',
-                                    desc: 'Vi kombinerer vestlige kakeklassikere med autentisk somalisk bakst og smak.',
+                                    desc: 'Vi kombinerer klassiske oppskrifter med kjærlighet og håndverk for å skape noe unikt.',
                                 },
                             ].map((value, i) => (
                                 <motion.div

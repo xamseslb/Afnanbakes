@@ -18,7 +18,7 @@ export function Footer() {
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               Håndlagde kaker og bakverk med kjærlighet i Oslo. Spesialisert på
-              både vestlige klassikere og autentisk somalisk bakst.
+              alt fra bursdagskaker til cupcakes – alltid laget med kjærlighet.
             </p>
           </div>
 
