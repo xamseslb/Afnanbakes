@@ -45,7 +45,11 @@ export default function Cart() {
       clearOrderDrafts();
       window.location.href = result.url;
     } else {
-      toast({ title: 'Noe gikk galt', description: 'Kunne ikke starte betaling.', variant: 'destructive' });
+      toast({
+        title: 'Noe gikk galt',
+        description: result.error || 'Kunne ikke starte betaling.',
+        variant: 'destructive',
+      });
     }
   };
 

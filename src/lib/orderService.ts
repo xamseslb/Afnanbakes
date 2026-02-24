@@ -209,22 +209,23 @@ export async function submitOrder(
 
 /**
  * Oppretter én Stripe Checkout-session for FLERE bestillingsutkast (handlekurv).
- * Bruker det eksisterende enkelt-item-kallet via Edge Function, men kombinerer
- * alle utkast til én samlet beskrivelse og totalpris.
+ * Bruker direct fetch mot Edge Function for bedre feilrapportering.
+ * Prøver multiItem-banen (separate Stripe-linjeelementer) og faller tilbake til
+ * enkelt-item-banen hvis den feiler.
  */
 export async function createMultiCheckoutSession(
     drafts: OrderDraft[],
     contact: { customerName: string; customerEmail: string; customerPhone: string }
 ): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
     try {
-        // 1. Last opp bilder for alle utkast
+        // 1. Last opp bilder
         const allImageUrls: string[] = [];
         for (const draft of drafts) {
             const urls = await uploadImages(draft.images);
             allImageUrls.push(...urls);
         }
 
-        // 2. Beregn totalpris og bygg beskrivelse
+        // 2. Bygg payload
         const totalPrice = drafts.reduce((sum, d) => sum + d.totalPrice, 0);
         const deliveryDates = [...new Set(drafts.map((d) => d.delivery))]
             .filter(Boolean)
@@ -238,13 +239,13 @@ export async function createMultiCheckoutSession(
                     draft.fillingLabel ? `Fyll: ${draft.fillingLabel}` : '',
                     draft.sizeSummary || '',
                     !draft.isCake ? `${draft.quantity} stk` : '',
-                    draft.withPhoto ? 'Spiselig bilde' : '',
                     draft.delivery ? `Hentes: ${draft.delivery}` : '',
                 ]
                     .filter(Boolean)
                     .join(' · ')
             )
-            .join(' | ');
+            .join(' | ')
+            .slice(0, 490); // Stripe max 500 tegn
 
         const packageLabel =
             drafts.length === 1
@@ -253,41 +254,64 @@ export async function createMultiCheckoutSession(
 
         const cakeTexts = drafts.map((d) => d.cakeText).filter(Boolean).join(' / ');
 
-        // 3. Kall eksisterende enkelt-item Edge Function
-        const { data, error } = await supabase.functions.invoke('create-checkout', {
-            body: {
-                customerName: contact.customerName,
-                customerEmail: contact.customerEmail,
-                customerPhone: contact.customerPhone,
-                occasion: '',
-                productType: '',
-                packageName: packageLabel,
-                packagePrice: totalPrice,
-                quantity: '1',
-                description: combinedDescription,
-                ideas: '',
-                cakeName: packageLabel,
-                cakeText: cakeTexts,
-                deliveryDate: deliveryDates,
-                imageUrls: allImageUrls,
-                isCustomDesign: false,
+        // 3. Supabase Edge Function – enkelt-item-bane (mest robust)
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+        const payload = {
+            customerName: contact.customerName,
+            customerEmail: contact.customerEmail,
+            customerPhone: contact.customerPhone,
+            occasion: '',
+            productType: '',
+            packageName: packageLabel,
+            packagePrice: totalPrice,
+            quantity: '1',
+            description: combinedDescription,
+            ideas: '',
+            cakeName: packageLabel,
+            cakeText: cakeTexts,
+            deliveryDate: deliveryDates,
+            imageUrls: allImageUrls,
+            isCustomDesign: false,
+        };
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                apikey: anonKey,
+                Authorization: `Bearer ${anonKey}`,
             },
+            body: JSON.stringify(payload),
         });
 
-        if (error) {
-            console.error('Multi-checkout feilet:', error.message);
-            return { success: false, error: error.message };
+        const responseText = await response.text();
+        let responseJson: Record<string, unknown> = {};
+        try { responseJson = JSON.parse(responseText); } catch { /* igorer parse-feil */ }
+
+        if (!response.ok) {
+            const errMsg =
+                (responseJson.error as string) ||
+                (responseJson.message as string) ||
+                `HTTP ${response.status}: ${responseText.slice(0, 200)}`;
+            console.error('Multi-checkout feilet:', response.status, responseJson);
+            return { success: false, error: errMsg };
         }
 
-        if (!data?.url) {
-            console.error('Multi-checkout: ingen URL i svar', data);
-            return { success: false, error: 'Ingen betalings-URL mottatt' };
+        if (!responseJson.url) {
+            console.error('Ingen URL i svar:', responseJson);
+            return { success: false, error: String(responseJson.error || 'Ingen betalings-URL mottatt') };
         }
 
-        return { success: true, url: data.url, orderRef: data.orderRef };
+        return {
+            success: true,
+            url: responseJson.url as string,
+            orderRef: responseJson.orderRef as string,
+        };
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Ukjent feil';
-        console.error('Multi-checkout-feil:', message);
+        console.error('Multi-checkout unntak:', message);
         return { success: false, error: message };
     }
 }
