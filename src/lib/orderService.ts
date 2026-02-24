@@ -227,9 +227,11 @@ export async function createMultiCheckoutSession(
 
         // 2. Bygg payload
         const totalPrice = drafts.reduce((sum, d) => sum + d.totalPrice, 0);
-        const deliveryDates = [...new Set(drafts.map((d) => d.delivery))]
-            .filter(Boolean)
-            .join(', ');
+
+        // Bruk siste leveringsdato for DB DATE-kolonnen (én gyldig dato).
+        // Individuelle datoer per produkt vises i combinedDescription.
+        const uniqueDates = [...new Set(drafts.map((d) => d.delivery))].filter(Boolean).sort();
+        const primaryDeliveryDate = uniqueDates[uniqueDates.length - 1] || null;
 
         const combinedDescription = drafts
             .map((draft, i) =>
@@ -271,7 +273,7 @@ export async function createMultiCheckoutSession(
             ideas: '',
             cakeName: packageLabel,
             cakeText: cakeTexts,
-            deliveryDate: deliveryDates,
+            deliveryDate: primaryDeliveryDate,
             imageUrls: allImageUrls,
             isCustomDesign: false,
         };
