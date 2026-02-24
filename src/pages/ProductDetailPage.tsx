@@ -52,12 +52,16 @@ export default function ProductDetailPage() {
     // ── Tilpasning-state ──
     const [selectedSize, setSelectedSize] = useState(CAKE_SIZES[0]);
     const [selectedFlavor, setSelectedFlavor] = useState(CAKE_FLAVORS[0]);
+    const [selectedFilling, setSelectedFilling] = useState(CAKE_FLAVORS[0].fillings[0]);
     const [selectedColor, setSelectedColor] = useState(CAKE_COLORS[0]);
     const [withPhoto, setWithPhoto] = useState(false);
     const [cakeText, setCakeText] = useState('');
     const [description, setDescription] = useState('');
     const [images, setImages] = useState<File[]>([]);
-    const [quantity, setQuantity] = useState(product?.minOrder || 1);
+    const [quantity, setQuantity] = useState(product?.minOrder || 6);
+
+    // Preset cupcake amounts
+    const CUPCAKE_PRESETS = [6, 12, 24];
 
     // ── Kontaktinfo ──
     const [name, setName] = useState('');
@@ -160,6 +164,7 @@ export default function ProductDetailPage() {
             description: [
                 description,
                 `Produkt: ${product.name}`,
+                `Smak: ${selectedFlavor.label} | Fyll: ${selectedFilling}`,
                 isCakeCategory(category || '') ? '' : `Antall: ${quantity}`,
             ].filter(Boolean).join(' | '),
             ideas: '',
@@ -267,24 +272,29 @@ export default function ProductDetailPage() {
                             </div>
                         )}
 
-                        {/* ── Antall (ikke kaker) ── */}
+                        {/* ── Antall cupcakes (preset) ── */}
                         {!isCake && (
                             <div>
-                                <Label className="text-base font-semibold mb-3 block">
-                                    Antall {product.minOrder ? `(min. ${product.minOrder} stk)` : ''}
-                                </Label>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setQuantity((q) => Math.max(product.minOrder || 1, q - 1))}
-                                        className="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center hover:border-primary transition-colors font-bold"
-                                    >−</button>
-                                    <span className="text-lg font-semibold w-10 text-center">{quantity}</span>
-                                    <button
-                                        onClick={() => setQuantity((q) => q + 1)}
-                                        className="w-10 h-10 rounded-full border-2 border-border flex items-center justify-center hover:border-primary transition-colors font-bold"
-                                    >+</button>
-                                    <span className="text-sm text-muted-foreground ml-2">= {(product.price * quantity).toLocaleString('nb-NO')} kr</span>
+                                <Label className="text-base font-semibold mb-3 block">Antall stk</Label>
+                                <div className="flex gap-2">
+                                    {CUPCAKE_PRESETS.map((n) => (
+                                        <button
+                                            key={n}
+                                            onClick={() => setQuantity(n)}
+                                            className={cn(
+                                                'px-6 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all',
+                                                quantity === n
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-border text-foreground hover:border-primary/40'
+                                            )}
+                                        >
+                                            {n} stk
+                                        </button>
+                                    ))}
                                 </div>
+                                <p className="text-sm text-muted-foreground mt-2">
+                                    = {(product.price * quantity).toLocaleString('nb-NO')} kr
+                                </p>
                             </div>
                         )}
 
@@ -295,7 +305,10 @@ export default function ProductDetailPage() {
                                 {CAKE_FLAVORS.map((flavor) => (
                                     <button
                                         key={flavor.id}
-                                        onClick={() => setSelectedFlavor(flavor)}
+                                        onClick={() => {
+                                            setSelectedFlavor(flavor);
+                                            setSelectedFilling(flavor.fillings[0]);
+                                        }}
                                         className={cn(
                                             "px-4 py-2 rounded-full border-2 text-sm font-medium transition-all",
                                             selectedFlavor.id === flavor.id
@@ -303,6 +316,25 @@ export default function ProductDetailPage() {
                                                 : "border-border text-foreground hover:border-primary/40"
                                         )}
                                     >{flavor.label}</button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* ── Fyll ── */}
+                        <div>
+                            <Label className="text-base font-semibold mb-3 block">Smak og fyll</Label>
+                            <div className="flex flex-wrap gap-2">
+                                {selectedFlavor.fillings.map((filling) => (
+                                    <button
+                                        key={filling}
+                                        onClick={() => setSelectedFilling(filling)}
+                                        className={cn(
+                                            "px-4 py-2 rounded-full border-2 text-sm font-medium transition-all",
+                                            selectedFilling === filling
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-border text-foreground hover:border-primary/40"
+                                        )}
+                                    >{filling}</button>
                                 ))}
                             </div>
                         </div>

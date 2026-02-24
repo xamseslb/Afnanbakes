@@ -16,10 +16,11 @@ export interface CakeSize {
   price: number;
 }
 
-/** Smaksalternativ */
+/** Smaksalternativ med tilhørende fyllvalg */
 export interface CakeFlavor {
   id: string;
   label: string;
+  fillings: string[];
 }
 
 /** Fargealternativ */
@@ -31,20 +32,17 @@ export interface CakeColor {
 
 /** ── Tilgjengelige størrelser ────────────────────────────── */
 export const CAKE_SIZES: CakeSize[] = [
-  { id: 'small', label: 'Liten', persons: '8–10 personer', price: 1050 },
-  { id: 'medium', label: 'Medium', persons: '10–15 personer', price: 1350 },
-  { id: 'large', label: 'Stor', persons: '15–20 personer', price: 1650 },
-  { id: 'xlarge', label: 'Ekstra stor', persons: '20–30 personer', price: 2200 },
+  { id: 'small', label: 'Liten', persons: '8–10 porsjoner', price: 1050 },
+  { id: 'medium', label: 'Medium', persons: '10–12 porsjoner', price: 1350 },
+  { id: 'large', label: 'Stor', persons: '15–20 porsjoner', price: 1650 },
+  { id: 'xlarge', label: 'Ekstra stor', persons: '20–30 porsjoner', price: 2200 },
 ];
 
 /** ── Tilgjengelige smaker ───────────────────────────────── */
 export const CAKE_FLAVORS: CakeFlavor[] = [
-  { id: 'sjokolade', label: 'Sjokolade' },
-  { id: 'vanilje', label: 'Vanilje' },
-  { id: 'red-velvet', label: 'Red Velvet' },
-  { id: 'karamell', label: 'Karamell' },
-  { id: 'sitron', label: 'Sitron' },
-  { id: 'jordbaer', label: 'Jordbær' },
+  { id: 'vanilje', label: 'Vanilje', fillings: ['Karamel', 'Bær', 'Vanilje'] },
+  { id: 'sjokolade', label: 'Sjokolade', fillings: ['Ganache', 'Bringebær'] },
+  { id: 'red-velvet', label: 'Red Velvet', fillings: ['Kremost', 'Kremost og karamel'] },
 ];
 
 /** ── Tilgjengelige farger ───────────────────────────────── */
