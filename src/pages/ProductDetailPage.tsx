@@ -55,6 +55,8 @@ export default function ProductDetailPage() {
     const [selectedFilling, setSelectedFilling] = useState(CAKE_FLAVORS[0].fillings[0]);
     const [flavorPicked, setFlavorPicked] = useState(false);
     const [withPhoto, setWithPhoto] = useState(false);
+    const [photoImage, setPhotoImage] = useState<File | null>(null);
+    const photoInputRef = useRef<HTMLInputElement>(null);
     const [cakeText, setCakeText] = useState('');
     const [description, setDescription] = useState('');
     const [images, setImages] = useState<File[]>([]);
@@ -213,7 +215,7 @@ export default function ProductDetailPage() {
                 ? `${product.name} (${selectedSize.persons})`
                 : `${product.name} × ${quantity} stk`,
             packagePrice: totalPrice,
-            images,
+            images: withPhoto && photoImage ? [photoImage, ...images] : images,
         };
         addOrderDraft(draft);
         // Lagre kontaktinfo for forhåndsutfylling i Cart
@@ -387,7 +389,7 @@ export default function ProductDetailPage() {
                         {/* ── Spiselig bilde ── */}
                         <div>
                             <button
-                                onClick={() => setWithPhoto((v) => !v)}
+                                onClick={() => { setWithPhoto((v) => { if (v) setPhotoImage(null); return !v; }); }}
                                 className={cn(
                                     "w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all",
                                     withPhoto ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
@@ -408,6 +410,59 @@ export default function ProductDetailPage() {
                                 </div>
                             </button>
                         </div>
+
+                        {/* Opplasting av spiselig bilde */}
+                        <AnimatePresence>
+                            {withPhoto && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mt-1">
+                                        <p className="text-sm font-medium text-foreground mb-2">
+                                            📷 Last opp bildet du vil ha på kaken
+                                        </p>
+                                        {photoImage ? (
+                                            <div className="relative inline-block group">
+                                                <img
+                                                    src={URL.createObjectURL(photoImage)}
+                                                    alt="Spiselig bilde"
+                                                    className="w-24 h-24 object-cover rounded-lg border-2 border-primary/30"
+                                                />
+                                                <button
+                                                    aria-label="Fjern spiselig bilde"
+                                                    onClick={() => setPhotoImage(null)}
+                                                    className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs shadow-sm"
+                                                >×</button>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                onClick={() => photoInputRef.current?.click()}
+                                                className="border-2 border-dashed border-primary/30 rounded-xl p-4 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/10 transition-all"
+                                            >
+                                                <ImagePlus className="w-6 h-6 text-primary/60 mx-auto mb-1" />
+                                                <p className="text-xs text-muted-foreground">Klikk for å laste opp bilde</p>
+                                            </div>
+                                        )}
+                                        <input
+                                            ref={photoInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) setPhotoImage(file);
+                                                e.target.value = '';
+                                            }}
+                                            className="hidden"
+                                            aria-label="Last opp spiselig bilde"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* ── Tekst på kaken ── */}
                         <div>
