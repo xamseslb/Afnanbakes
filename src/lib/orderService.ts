@@ -218,11 +218,12 @@ export async function createMultiCheckoutSession(
     contact: { customerName: string; customerEmail: string; customerPhone: string }
 ): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
     try {
-        // 1. Last opp bilder
+        // 1. Samle forhåndsopplastede bilde-URL-er (lastet opp ved legg-til-kurv)
         const allImageUrls: string[] = [];
         for (const draft of drafts) {
-            const urls = await uploadImages(draft.images);
-            allImageUrls.push(...urls);
+            if (draft.imageUrls && draft.imageUrls.length > 0) {
+                allImageUrls.push(...draft.imageUrls);
+            }
         }
 
         // 2. Bygg payload

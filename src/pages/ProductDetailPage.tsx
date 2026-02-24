@@ -22,7 +22,7 @@ import {
     CAKE_SIZES, CAKE_FLAVORS, PHOTO_ADDON_PRICE,
 } from '@/lib/orderTypes';
 import { fetchAvailability, formatNorwegianDate, type DateAvailability } from '@/lib/calendarService';
-import { createCheckoutSession } from '@/lib/orderService';
+import { createCheckoutSession, uploadImages } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/hooks/useCart';
 import { ProductCategory, OrderDraft } from '@/lib/types';
@@ -193,15 +193,27 @@ export default function ProductDetailPage() {
     };
 
     /** Legg produktet i kurven og naviger tilbake til kategorisiden */
-    const handleAddToCart = (destination: 'category' | 'cart' = 'category') => {
+    const handleAddToCart = async (destination: 'category' | 'cart' = 'category') => {
         if (!deliveryDate || !product) return;
+
+        // Last opp bilder umiddelbart slik at URL-ene overlever sessionStorage
+        const allFiles = withPhoto && photoImage ? [photoImage, ...images] : images;
+        let uploadedUrls: string[] = [];
+        if (allFiles.length > 0) {
+            try {
+                uploadedUrls = await uploadImages(allFiles);
+            } catch (err) {
+                console.error('Bildeopplasting feilet:', err);
+            }
+        }
+
         const draft: OrderDraft = {
             id: crypto.randomUUID(),
             productName: product.name,
             productImageUrl: product.imageUrl,
             isCake,
             sizeSummary: isCake
-                ? `${selectedSize.label} · ${selectedSize.persons}`
+                ? `${selectedSize.label} \u00b7 ${selectedSize.persons}`
                 : '',
             flavorLabel: flavorPicked ? selectedFlavor.label : '',
             fillingLabel: flavorPicked ? selectedFilling : '',
@@ -213,9 +225,10 @@ export default function ProductDetailPage() {
             description,
             packageName: isCake
                 ? `${product.name} (${selectedSize.persons})`
-                : `${product.name} × ${quantity} stk`,
+                : `${product.name} \u00d7 ${quantity} stk`,
             packagePrice: totalPrice,
-            images: withPhoto && photoImage ? [photoImage, ...images] : images,
+            images: [],           // File-objekter trengs ikke lenger
+            imageUrls: uploadedUrls, // Forhåndsopplastede URL-er
         };
         addOrderDraft(draft);
         // Lagre kontaktinfo for forhåndsutfylling i Cart
@@ -226,7 +239,7 @@ export default function ProductDetailPage() {
             navigate('/cart');
         } else {
             toast({
-                title: '✅ Lagt til i kurven!',
+                title: '\u2705 Lagt til i kurven!',
                 description: `${product.name} er klar. Legg til flere eller gå til kurven for å betale.`,
             });
             navigate(`/${product.category}`);

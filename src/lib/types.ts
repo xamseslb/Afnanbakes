@@ -59,6 +59,8 @@ export interface OrderDraft {
   packageName: string;
   /** Betalbar pris i NOK (= totalPrice) */
   packagePrice: number;
-  /** Inspirasjonsfiler — beholdes kun i minnet, ikke i localStorage */
+  /** Inspirasjonsfiler — beholdes kun i minnet, ikke i sessionStorage */
   images: File[];
+  /** Forhåndsopplastede bilde-URL-er (kan serialiseres til sessionStorage) */
+  imageUrls: string[];
 }
