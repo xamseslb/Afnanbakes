@@ -6,7 +6,8 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle2, XCircle, ArrowRight, Copy, CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCart } from '@/hooks/useCart';
 
 export default function OrderConfirmation() {
     const [searchParams] = useSearchParams();
@@ -16,6 +17,16 @@ export default function OrderConfirmation() {
 
     const isSuccess = status === 'success';
     const isCustom = searchParams.get('type') === 'custom';
+    const { clearOrderDrafts } = useCart();
+
+    // Tøm kurven når betaling er bekreftet
+    useEffect(() => {
+        if (isSuccess) {
+            clearOrderDrafts();
+            try { sessionStorage.removeItem('afnanbakes_drafts'); } catch { /* ignorer */ }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSuccess]);
 
     function copyRef() {
         if (orderRef) {

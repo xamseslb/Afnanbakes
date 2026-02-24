@@ -36,13 +36,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : [];
   });
 
-  // Bestillingsutkast beholdes kun i minnet (File-objekter er ikke serialiserbare)
-  const [orderDrafts, setOrderDrafts] = useState<OrderDraft[]>([]);
+  // Bestillingsutkast – lagres i sessionStorage (uten File-objekter som ikke kan serialiseres).
+  // File-objektene trenger vi bare under opplasting; etter at brukeren er videresendt til Stripe
+  // er bildene allerede lastet opp og URL-er er sendt.
+  const DRAFTS_SESSION_KEY = 'afnanbakes_drafts';
+  const [orderDrafts, setOrderDrafts] = useState<OrderDraft[]>(() => {
+    try {
+      const stored = sessionStorage.getItem(DRAFTS_SESSION_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as OrderDraft[];
+        return parsed.map((d) => ({ ...d, images: [] })); // File-objekter kan ikke serialiseres
+      }
+    } catch { /* ignorer */ }
+    return [];
+  });
 
   // Synkroniser handlekurven til localStorage ved endringer
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
+
+  // Synkroniser utkast til sessionStorage (uten File-objekter som ikke kan serialiseres)
+  useEffect(() => {
+    try {
+      const toStore = orderDrafts.map((d) => ({ ...d, images: [] }));
+      sessionStorage.setItem(DRAFTS_SESSION_KEY, JSON.stringify(toStore));
+    } catch { /* ignorer */ }
+  }, [orderDrafts]);
 
   /** Legg til et produkt (øker antall hvis det allerede finnes) */
   const addToCart = (product: Product) => {

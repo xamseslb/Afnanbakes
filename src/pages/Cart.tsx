@@ -45,7 +45,8 @@ export default function Cart() {
     });
     setIsSubmitting(false);
     if (result.success && result.url) {
-      clearOrderDrafts();
+      // Ikke tøm kurven her – brukeren kan gå tilbake fra Stripe.
+      // Kurven tømmes på bekreftelsessiden (/ordre-bekreftelse?status=success).
       window.location.href = result.url;
     } else {
       toast({
