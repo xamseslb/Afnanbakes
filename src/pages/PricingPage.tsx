@@ -106,32 +106,6 @@ export default function PricingPage() {
                     </div>
                 </motion.section>
 
-                {/* ── Farger ── */}
-                <motion.section
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                >
-                    <div className="flex items-center gap-2 mb-6">
-                        <Palette className="w-6 h-6 text-primary" />
-                        <h2 className="font-serif text-2xl font-bold text-foreground">Farger</h2>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                        {CAKE_COLORS.map((color) => (
-                            <div
-                                key={color.id}
-                                className="inline-flex items-center gap-2 px-5 py-3 bg-card rounded-xl border border-border/50 font-medium"
-                            >
-                                <span
-                                    className="w-5 h-5 rounded-full border border-border/50"
-                                    style={{ backgroundColor: color.hex }}
-                                />
-                                {color.label}
-                            </div>
-                        ))}
-                    </div>
-                </motion.section>
-
                 {/* ── Tillegg ── */}
                 <motion.section
                     initial={{ opacity: 0, y: 20 }}

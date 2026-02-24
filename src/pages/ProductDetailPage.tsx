@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { getProductById } from '@/lib/products';
 import {
-    CAKE_SIZES, CAKE_FLAVORS, CAKE_COLORS, PHOTO_ADDON_PRICE,
+    CAKE_SIZES, CAKE_FLAVORS, PHOTO_ADDON_PRICE,
 } from '@/lib/orderTypes';
 import { fetchAvailability, formatNorwegianDate, type DateAvailability } from '@/lib/calendarService';
 import { createCheckoutSession } from '@/lib/orderService';
@@ -53,7 +53,7 @@ export default function ProductDetailPage() {
     const [selectedSize, setSelectedSize] = useState(CAKE_SIZES[0]);
     const [selectedFlavor, setSelectedFlavor] = useState(CAKE_FLAVORS[0]);
     const [selectedFilling, setSelectedFilling] = useState(CAKE_FLAVORS[0].fillings[0]);
-    const [selectedColor, setSelectedColor] = useState(CAKE_COLORS[0]);
+    const [flavorPicked, setFlavorPicked] = useState(false);
     const [withPhoto, setWithPhoto] = useState(false);
     const [cakeText, setCakeText] = useState('');
     const [description, setDescription] = useState('');
@@ -156,7 +156,7 @@ export default function ProductDetailPage() {
             isCustomDesign: false,
             selectedSize: isCakeCategory(category || '') ? selectedSize : null,
             selectedFlavor,
-            selectedColor,
+            selectedColor: null,
             withPhoto,
             customerName: name,
             customerEmail: email,
@@ -226,14 +226,6 @@ export default function ProductDetailPage() {
                                     <span className="text-sm">Bilde kommer snart</span>
                                 </div>
                             )}
-                        </div>
-
-                        {/* Fargevalgt forhåndsvisning */}
-                        <div className="mt-4 p-4 bg-muted/40 rounded-xl text-sm text-muted-foreground text-center">
-                            Farge: <span className="font-medium text-foreground flex items-center gap-1.5 justify-center mt-1">
-                                <span className="w-4 h-4 rounded-full border border-border/50 inline-block" style={{ backgroundColor: selectedColor.hex }} />
-                                {selectedColor.label}
-                            </span>
                         </div>
                     </div>
 
@@ -308,10 +300,11 @@ export default function ProductDetailPage() {
                                         onClick={() => {
                                             setSelectedFlavor(flavor);
                                             setSelectedFilling(flavor.fillings[0]);
+                                            setFlavorPicked(true);
                                         }}
                                         className={cn(
                                             "px-4 py-2 rounded-full border-2 text-sm font-medium transition-all",
-                                            selectedFlavor.id === flavor.id
+                                            selectedFlavor.id === flavor.id && flavorPicked
                                                 ? "border-primary bg-primary/5 text-primary"
                                                 : "border-border text-foreground hover:border-primary/40"
                                         )}
@@ -320,47 +313,35 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
 
-                        {/* ── Fyll ── */}
-                        <div>
-                            <Label className="text-base font-semibold mb-3 block">Smak og fyll</Label>
-                            <div className="flex flex-wrap gap-2">
-                                {selectedFlavor.fillings.map((filling) => (
-                                    <button
-                                        key={filling}
-                                        onClick={() => setSelectedFilling(filling)}
-                                        className={cn(
-                                            "px-4 py-2 rounded-full border-2 text-sm font-medium transition-all",
-                                            selectedFilling === filling
-                                                ? "border-primary bg-primary/5 text-primary"
-                                                : "border-border text-foreground hover:border-primary/40"
-                                        )}
-                                    >{filling}</button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* ── Farge ── */}
-                        <div>
-                            <Label className="text-base font-semibold mb-3 block">Farge</Label>
-                            <div className="flex flex-wrap gap-2.5">
-                                {CAKE_COLORS.map((color) => (
-                                    <button
-                                        key={color.id}
-                                        onClick={() => setSelectedColor(color)}
-                                        title={color.label}
-                                        aria-label={color.label}
-                                        className={cn(
-                                            "w-9 h-9 rounded-full border-2 transition-all duration-200",
-                                            selectedColor.id === color.id
-                                                ? "border-primary scale-110 shadow-md"
-                                                : "border-transparent hover:border-primary/50 hover:scale-105"
-                                        )}
-                                        style={{ backgroundColor: color.hex, outline: '2px solid hsl(var(--border))' }}
-                                    />
-                                ))}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-2">Valgt: {selectedColor.label}</p>
-                        </div>
+                        {/* ── Fyll (vises kun når smak er valgt) ── */}
+                        <AnimatePresence>
+                            {flavorPicked && (
+                                <motion.div
+                                    key="filling"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="overflow-hidden"
+                                >
+                                    <Label className="text-base font-semibold mb-3 block">Fyll</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedFlavor.fillings.map((filling) => (
+                                            <button
+                                                key={filling}
+                                                onClick={() => setSelectedFilling(filling)}
+                                                className={cn(
+                                                    "px-4 py-2 rounded-full border-2 text-sm font-medium transition-all",
+                                                    selectedFilling === filling
+                                                        ? "border-primary bg-primary/5 text-primary"
+                                                        : "border-border text-foreground hover:border-primary/40"
+                                                )}
+                                            >{filling}</button>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* ── Spiselig bilde ── */}
                         <div>
@@ -553,13 +534,7 @@ export default function ProductDetailPage() {
                                     <span className="text-muted-foreground">Smak</span>
                                     <span className="font-medium">{selectedFlavor.label}</span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-muted-foreground">Farge</span>
-                                    <span className="flex items-center gap-1.5 font-medium">
-                                        <span className="w-3 h-3 rounded-full border border-border/50 inline-block" style={{ backgroundColor: selectedColor.hex }} />
-                                        {selectedColor.label}
-                                    </span>
-                                </div>
+
                                 {withPhoto && (
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Spiselig bilde</span>

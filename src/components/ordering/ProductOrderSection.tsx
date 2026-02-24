@@ -6,7 +6,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Ruler, Palette, Droplets, ImagePlus, CalendarDays,
+    Ruler, Droplets, ImagePlus, CalendarDays,
     User, Mail, Phone, Upload, X, ChevronLeft, ChevronRight,
     Check, Loader2, ShoppingBag, Camera, Type
 } from 'lucide-react';
@@ -17,8 +17,8 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import {
     OrderData, Occasion, occasionLabels,
-    CAKE_SIZES, CAKE_FLAVORS, CAKE_COLORS, PHOTO_ADDON_PRICE,
-    CakeSize, CakeFlavor, CakeColor,
+    CAKE_SIZES, CAKE_FLAVORS, PHOTO_ADDON_PRICE,
+    CakeSize, CakeFlavor,
 } from '@/lib/orderTypes';
 import { fetchAvailability, formatNorwegianDate, type DateAvailability } from '@/lib/calendarService';
 
@@ -136,7 +136,6 @@ export function ProductOrderSection({
     const isValid =
         orderData.selectedSize !== null &&
         orderData.selectedFlavor !== null &&
-        orderData.selectedColor !== null &&
         orderData.deliveryDate.trim() !== '' &&
         orderData.customerName.trim() !== '' &&
         orderData.customerEmail.trim() !== '' &&
@@ -205,32 +204,7 @@ export function ProductOrderSection({
                     </div>
                 </Section>
 
-                {/* ── 3. Farge ── */}
-                <Section icon={<Palette className="w-5 h-5" />} title="Farge" delay={0.15}>
-                    <div className="flex flex-wrap gap-3">
-                        {CAKE_COLORS.map((color) => (
-                            <button
-                                key={color.id}
-                                onClick={() => onUpdate({ selectedColor: color })}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-200",
-                                    "hover:border-primary/50",
-                                    orderData.selectedColor?.id === color.id
-                                        ? "border-primary bg-primary/5"
-                                        : "border-border bg-card"
-                                )}
-                            >
-                                <span
-                                    className="w-5 h-5 rounded-full border border-border/50"
-                                    style={{ backgroundColor: color.hex }}
-                                />
-                                {color.label}
-                            </button>
-                        ))}
-                    </div>
-                </Section>
-
-                {/* ── 4. Spiselig bilde ── */}
+                {/* ── 3. Spiselig bilde ── */}
                 <Section icon={<Camera className="w-5 h-5" />} title="Spiselig bilde" delay={0.2}>
                     <button
                         onClick={() => onUpdate({ withPhoto: !orderData.withPhoto })}
@@ -464,15 +438,7 @@ export function ProductOrderSection({
                                 <span className="font-medium">{orderData.selectedFlavor.label}</span>
                             </div>
                         )}
-                        {orderData.selectedColor && (
-                            <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">Farge</span>
-                                <span className="flex items-center gap-1.5 font-medium">
-                                    <span className="w-3.5 h-3.5 rounded-full border border-border/50" style={{ backgroundColor: orderData.selectedColor.hex }} />
-                                    {orderData.selectedColor.label}
-                                </span>
-                            </div>
-                        )}
+
                         {orderData.withPhoto && (
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Spiselig bilde</span>
