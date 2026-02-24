@@ -209,48 +209,79 @@ export async function submitOrder(
 
 /**
  * Oppretter én Stripe Checkout-session for FLERE bestillingsutkast (handlekurv).
- * Laster opp bilder for alle utkast, sender dem som separate linjer til Edge Function.
+ * Bruker det eksisterende enkelt-item-kallet via Edge Function, men kombinerer
+ * alle utkast til én samlet beskrivelse og totalpris.
  */
 export async function createMultiCheckoutSession(
     drafts: OrderDraft[],
     contact: { customerName: string; customerEmail: string; customerPhone: string }
 ): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
     try {
+        // 1. Last opp bilder for alle utkast
         const allImageUrls: string[] = [];
         for (const draft of drafts) {
             const urls = await uploadImages(draft.images);
             allImageUrls.push(...urls);
         }
 
-        const lineItems = drafts.map((draft) => ({
-            name: draft.packageName,
-            price: draft.packagePrice,
-            description: [
-                draft.flavorLabel ? `Smak: ${draft.flavorLabel}` : '',
-                draft.fillingLabel ? `Fyll: ${draft.fillingLabel}` : '',
-                draft.sizeSummary || '',
-                !draft.isCake ? `Antall: ${draft.quantity} stk` : '',
-                draft.withPhoto ? 'Med spiselig bilde' : '',
-                draft.delivery ? `Hentes: ${draft.delivery}` : '',
-            ].filter(Boolean).join(' · '),
-            deliveryDate: draft.delivery,
-            cakeText: draft.cakeText,
-        }));
+        // 2. Beregn totalpris og bygg beskrivelse
+        const totalPrice = drafts.reduce((sum, d) => sum + d.totalPrice, 0);
+        const deliveryDates = [...new Set(drafts.map((d) => d.delivery))]
+            .filter(Boolean)
+            .join(', ');
 
+        const combinedDescription = drafts
+            .map((draft, i) =>
+                [
+                    `${i + 1}. ${draft.productName} (${draft.totalPrice} kr)`,
+                    draft.flavorLabel ? `Smak: ${draft.flavorLabel}` : '',
+                    draft.fillingLabel ? `Fyll: ${draft.fillingLabel}` : '',
+                    draft.sizeSummary || '',
+                    !draft.isCake ? `${draft.quantity} stk` : '',
+                    draft.withPhoto ? 'Spiselig bilde' : '',
+                    draft.delivery ? `Hentes: ${draft.delivery}` : '',
+                ]
+                    .filter(Boolean)
+                    .join(' · ')
+            )
+            .join(' | ');
+
+        const packageLabel =
+            drafts.length === 1
+                ? drafts[0].packageName
+                : `Samlet bestilling (${drafts.length} produkter)`;
+
+        const cakeTexts = drafts.map((d) => d.cakeText).filter(Boolean).join(' / ');
+
+        // 3. Kall eksisterende enkelt-item Edge Function
         const { data, error } = await supabase.functions.invoke('create-checkout', {
             body: {
-                multiItem: true,
                 customerName: contact.customerName,
                 customerEmail: contact.customerEmail,
                 customerPhone: contact.customerPhone,
-                lineItems,
+                occasion: '',
+                productType: '',
+                packageName: packageLabel,
+                packagePrice: totalPrice,
+                quantity: '1',
+                description: combinedDescription,
+                ideas: '',
+                cakeName: packageLabel,
+                cakeText: cakeTexts,
+                deliveryDate: deliveryDates,
                 imageUrls: allImageUrls,
+                isCustomDesign: false,
             },
         });
 
         if (error) {
             console.error('Multi-checkout feilet:', error.message);
             return { success: false, error: error.message };
+        }
+
+        if (!data?.url) {
+            console.error('Multi-checkout: ingen URL i svar', data);
+            return { success: false, error: 'Ingen betalings-URL mottatt' };
         }
 
         return { success: true, url: data.url, orderRef: data.orderRef };
