@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { addOrderDraft, orderDrafts } = useCart();
+    const { addOrderDraft, orderDrafts, getDraftsTotal } = useCart();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const product = id ? getProductById(Number(id)) : undefined;
@@ -189,7 +189,7 @@ export default function ProductDetailPage() {
     };
 
     /** Legg produktet i kurven og naviger tilbake til kategorisiden */
-    const handleAddToCart = () => {
+    const handleAddToCart = (destination: 'category' | 'cart' = 'category') => {
         if (!deliveryDate || !product) return;
         const draft: OrderDraft = {
             id: crypto.randomUUID(),
@@ -214,11 +214,15 @@ export default function ProductDetailPage() {
             images,
         };
         addOrderDraft(draft);
-        toast({
-            title: '✅ Lagt til i kurven!',
-            description: `${product.name} er klar. Legg til flere eller gå til kurven for å betale.`,
-        });
-        navigate(`/${product.category}`);
+        if (destination === 'cart') {
+            navigate('/cart');
+        } else {
+            toast({
+                title: '✅ Lagt til i kurven!',
+                description: `${product.name} er klar. Legg til flere eller gå til kurven for å betale.`,
+            });
+            navigate(`/${product.category}`);
+        }
     };
 
     if (!product) {
@@ -578,29 +582,52 @@ export default function ProductDetailPage() {
                                         <span className="font-medium">{formatNorwegianDate(deliveryDate)}</span>
                                     </div>
                                 )}
+
+                                {/* Vis varer allerede i kurven */}
+                                {orderDrafts.length > 0 && (
+                                    <div className="flex justify-between text-muted-foreground border-t border-border/30 pt-2 mt-1">
+                                        <span>{orderDrafts.length} vare{orderDrafts.length > 1 ? 'r' : ''} i kurven</span>
+                                        <span>{getDraftsTotal().toLocaleString('nb-NO')} kr</span>
+                                    </div>
+                                )}
+
                                 <div className="border-t border-border/50 pt-3 mt-2 flex justify-between text-base">
                                     <span className="font-bold text-foreground">Totalt</span>
-                                    <span className="font-bold text-primary">{totalPrice.toLocaleString('nb-NO')} kr</span>
+                                    <span className="font-bold text-primary">
+                                        {(totalPrice + getDraftsTotal()).toLocaleString('nb-NO')} kr
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Betal direkte */}
-                            <Button
-                                onClick={handleOrder}
-                                disabled={!isValid || isSubmitting}
-                                size="lg"
-                                className="w-full rounded-full gap-2"
-                            >
-                                {isSubmitting ? (
-                                    <><Loader2 className="w-4 h-4 animate-spin" /> Behandler...</>
-                                ) : (
-                                    <><ShoppingBag className="w-4 h-4" /> Bestill — {totalPrice.toLocaleString('nb-NO')} kr</>
-                                )}
-                            </Button>
+                            {/* Betal direkte (eller legg til og betal alt) */}
+                            {orderDrafts.length > 0 ? (
+                                <Button
+                                    onClick={() => handleAddToCart('cart')}
+                                    disabled={!deliveryDate}
+                                    size="lg"
+                                    className="w-full rounded-full gap-2"
+                                >
+                                    <ShoppingBag className="w-4 h-4" />
+                                    Legg til og betal alt — {(totalPrice + getDraftsTotal()).toLocaleString('nb-NO')} kr
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={handleOrder}
+                                    disabled={!isValid || isSubmitting}
+                                    size="lg"
+                                    className="w-full rounded-full gap-2"
+                                >
+                                    {isSubmitting ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Behandler...</>
+                                    ) : (
+                                        <><ShoppingBag className="w-4 h-4" /> Bestill — {totalPrice.toLocaleString('nb-NO')} kr</>
+                                    )}
+                                </Button>
+                            )}
 
                             {/* Legg til i kurv og kjøp mer */}
                             <Button
-                                onClick={handleAddToCart}
+                                onClick={() => handleAddToCart('category')}
                                 disabled={!deliveryDate}
                                 variant="outline"
                                 size="lg"
@@ -619,7 +646,7 @@ export default function ProductDetailPage() {
                                     Velg dato for å legge i kurven
                                 </p>
                             )}
-                            {!isValid && deliveryDate && (
+                            {orderDrafts.length === 0 && !isValid && deliveryDate && (
                                 <p className="text-xs text-muted-foreground text-center mt-2">
                                     Fyll inn kontaktinfo for å bestille direkte
                                 </p>
