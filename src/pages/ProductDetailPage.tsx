@@ -37,19 +37,17 @@ function toDateStr(date: Date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-/** Merk om kaken har størrelses-priser (kaker) eller fast pris (cupcakes/cookies/sabayad) */
-function isCakeCategory(cat: string) {
-    return cat === 'cakes';
-}
 
 export default function ProductDetailPage() {
-    const { category, id } = useParams<{ category: string; id: string }>();
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
     const { addOrderDraft, orderDrafts } = useCart();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const product = id ? getProductById(Number(id)) : undefined;
+    /** true = kake (avledet fra produktet, ikke URL-param som alltid er undefined) */
+    const isCake = product?.category === 'cakes';
 
     // ── Tilpasning-state ──
     const [selectedSize, setSelectedSize] = useState(CAKE_SIZES[0]);
@@ -140,7 +138,7 @@ export default function ProductDetailPage() {
     };
 
     // Totalprice
-    const basePrice = isCakeCategory(category || '')
+    const basePrice = isCake
         ? selectedSize.price
         : (product?.price || 0) * quantity;
     const totalPrice = basePrice + (withPhoto ? PHOTO_ADDON_PRICE : 0);
@@ -156,7 +154,7 @@ export default function ProductDetailPage() {
             productType: null,
             selectedPackage: null,
             isCustomDesign: false,
-            selectedSize: isCakeCategory(category || '') ? selectedSize : null,
+            selectedSize: isCake ? selectedSize : null,
             selectedFlavor,
             selectedColor: null,
             withPhoto,
@@ -167,7 +165,7 @@ export default function ProductDetailPage() {
                 description,
                 `Produkt: ${product.name}`,
                 `Smak: ${selectedFlavor.label} | Fyll: ${selectedFilling}`,
-                isCakeCategory(category || '') ? '' : `Antall: ${quantity}`,
+                !isCake ? `Antall: ${quantity}` : '',
             ].filter(Boolean).join(' | '),
             ideas: '',
             cakeName: product.name,
@@ -175,8 +173,7 @@ export default function ProductDetailPage() {
             quantity: String(quantity),
             deliveryDate,
             images,
-            // For cupcakes/cookies: gi prisen direkte siden de ikke har selectedSize
-            directPrice: !isCakeCategory(category || '')
+            directPrice: !isCake
                 ? product.price * quantity + (withPhoto ? PHOTO_ADDON_PRICE : 0)
                 : undefined,
         };
@@ -221,7 +218,7 @@ export default function ProductDetailPage() {
             title: '✅ Lagt til i kurven!',
             description: `${product.name} er klar. Legg til flere eller gå til kurven for å betale.`,
         });
-        navigate(`/${category}`);
+        navigate(`/${product.category}`);
     };
 
     if (!product) {
@@ -235,7 +232,6 @@ export default function ProductDetailPage() {
         );
     }
 
-    const isCake = isCakeCategory(category || '');
 
     return (
         <div className="min-h-screen bg-background pb-20">
