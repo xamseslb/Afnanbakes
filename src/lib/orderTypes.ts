@@ -32,10 +32,8 @@ export interface CakeColor {
 
 /** ── Tilgjengelige størrelser ────────────────────────────── */
 export const CAKE_SIZES: CakeSize[] = [
-  { id: 'small', label: 'Liten', persons: '8–10 porsjoner', price: 1050 },
-  { id: 'medium', label: 'Medium', persons: '10–12 porsjoner', price: 1350 },
-  { id: 'large', label: 'Stor', persons: '15–20 porsjoner', price: 1650 },
-  { id: 'xlarge', label: 'Ekstra stor', persons: '20–30 porsjoner', price: 2200 },
+  { id: 'small', label: 'Liten', persons: '8–10 porsjoner', price: 499 },
+  { id: 'medium', label: 'Medium', persons: '10–12 porsjoner', price: 649 },
 ];
 
 /** ── Tilgjengelige smaker ───────────────────────────────── */
