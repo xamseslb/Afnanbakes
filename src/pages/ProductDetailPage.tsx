@@ -24,7 +24,8 @@ import {
 import { fetchAvailability, formatNorwegianDate, type DateAvailability } from '@/lib/calendarService';
 import { createCheckoutSession } from '@/lib/orderService';
 import { useToast } from '@/hooks/use-toast';
-import { ProductCategory } from '@/lib/types';
+import { useCart } from '@/hooks/useCart';
+import { ProductCategory, OrderDraft } from '@/lib/types';
 
 const WEEKDAYS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
 const MONTHS_NB = [
@@ -45,6 +46,7 @@ export default function ProductDetailPage() {
     const { category, id } = useParams<{ category: string; id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { addOrderDraft, orderDrafts } = useCart();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const product = id ? getProductById(Number(id)) : undefined;
@@ -187,6 +189,39 @@ export default function ProductDetailPage() {
         } else {
             toast({ title: 'Noe gikk galt', description: 'Kunne ikke starte betaling.', variant: 'destructive' });
         }
+    };
+
+    /** Legg produktet i kurven og naviger tilbake til kategorisiden */
+    const handleAddToCart = () => {
+        if (!deliveryDate || !product) return;
+        const draft: OrderDraft = {
+            id: crypto.randomUUID(),
+            productName: product.name,
+            productImageUrl: product.imageUrl,
+            isCake,
+            sizeSummary: isCake
+                ? `${selectedSize.label} · ${selectedSize.persons}`
+                : '',
+            flavorLabel: flavorPicked ? selectedFlavor.label : '',
+            fillingLabel: flavorPicked ? selectedFilling : '',
+            quantity,
+            totalPrice,
+            delivery: deliveryDate,
+            withPhoto,
+            cakeText,
+            description,
+            packageName: isCake
+                ? `${product.name} (${selectedSize.persons})`
+                : `${product.name} × ${quantity} stk`,
+            packagePrice: totalPrice,
+            images,
+        };
+        addOrderDraft(draft);
+        toast({
+            title: '✅ Lagt til i kurven!',
+            description: `${product.name} er klar. Legg til flere eller gå til kurven for å betale.`,
+        });
+        navigate(`/${category}`);
     };
 
     if (!product) {
@@ -553,6 +588,7 @@ export default function ProductDetailPage() {
                                 </div>
                             </div>
 
+                            {/* Betal direkte */}
                             <Button
                                 onClick={handleOrder}
                                 disabled={!isValid || isSubmitting}
@@ -566,9 +602,30 @@ export default function ProductDetailPage() {
                                 )}
                             </Button>
 
-                            {!isValid && (
+                            {/* Legg til i kurv og kjøp mer */}
+                            <Button
+                                onClick={handleAddToCart}
+                                disabled={!deliveryDate}
+                                variant="outline"
+                                size="lg"
+                                className="w-full rounded-full gap-2 mt-3"
+                            >
+                                + Legg til produkt til
+                                {orderDrafts.length > 0 && (
+                                    <span className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                                        {orderDrafts.length}
+                                    </span>
+                                )}
+                            </Button>
+
+                            {!deliveryDate && (
                                 <p className="text-xs text-muted-foreground text-center mt-2">
-                                    Fyll inn dato og kontaktinfo for å bestille
+                                    Velg dato for å legge i kurven
+                                </p>
+                            )}
+                            {!isValid && deliveryDate && (
+                                <p className="text-xs text-muted-foreground text-center mt-2">
+                                    Fyll inn kontaktinfo for å bestille direkte
                                 </p>
                             )}
                         </div>

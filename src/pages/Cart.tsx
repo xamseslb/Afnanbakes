@@ -1,17 +1,56 @@
 /**
- * Cart — Handlekurvside med mulighet for å endre antall og tømme kurven.
+ * Cart — Handlekurvside for konfigurerte bestillingsutkast.
+ * Viser alle produkter lagt til med «Legg til produkt til», lar brukeren fylle inn
+ * kontaktinfo og betale for alt på én gang via Stripe.
  */
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Trash2, ShoppingBag, ArrowRight, ArrowLeft,
+  Loader2, User, Mail, Phone, CalendarDays, ChevronRight
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useCart } from '@/hooks/useCart';
+import { useToast } from '@/hooks/use-toast';
+import { createMultiCheckoutSession } from '@/lib/orderService';
+import { formatNorwegianDate } from '@/lib/calendarService';
+import { cn } from '@/lib/utils';
 
 export default function Cart() {
-  const { items, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCart();
-  const total = getCartTotal();
+  const { orderDrafts, removeOrderDraft, clearOrderDrafts, getDraftsTotal } = useCart();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  if (items.length === 0) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const total = getDraftsTotal();
+  const isValid = name.trim() && email.trim() && phone.trim();
+
+  const handlePayAll = async () => {
+    if (!isValid || isSubmitting || orderDrafts.length === 0) return;
+    setIsSubmitting(true);
+    const result = await createMultiCheckoutSession(orderDrafts, {
+      customerName: name,
+      customerEmail: email,
+      customerPhone: phone,
+    });
+    setIsSubmitting(false);
+    if (result.success && result.url) {
+      clearOrderDrafts();
+      window.location.href = result.url;
+    } else {
+      toast({ title: 'Noe gikk galt', description: 'Kunne ikke starte betaling.', variant: 'destructive' });
+    }
+  };
+
+  // ── Tom kurv ────────────────────────────────────────────────────────────
+  if (orderDrafts.length === 0) {
     return (
       <div className="container mx-auto px-4 py-20">
         <motion.div
@@ -22,15 +61,13 @@ export default function Cart() {
           <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-secondary">
             <ShoppingBag className="h-12 w-12 text-muted-foreground" />
           </div>
-          <h1 className="font-serif text-3xl font-bold text-foreground">
-            Handlekurven er tom
-          </h1>
+          <h1 className="font-serif text-3xl font-bold text-foreground">Handlekurven er tom</h1>
           <p className="mt-4 text-muted-foreground">
-            Du har ikke lagt til noe i handlekurven ennå.
+            Gå til et produkt og klikk «Legg til produkt til» for å bygge opp bestillingen din.
           </p>
           <Link to="/" className="mt-8 inline-block">
             <Button className="gap-2 rounded-full">
-              Bestill nå
+              Se produkter
               <ArrowRight className="h-5 w-5" />
             </Button>
           </Link>
@@ -39,133 +76,201 @@ export default function Cart() {
     );
   }
 
+  // ── Kurv med produkter ───────────────────────────────────────────────────
   return (
     <section className="py-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Tilbake-lenke */}
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> Tilbake
+        </button>
+
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="font-serif text-4xl font-bold text-foreground mb-8"
         >
           Handlekurv
+          <span className="ml-3 text-lg font-normal text-muted-foreground">
+            ({orderDrafts.length} {orderDrafts.length === 1 ? 'produkt' : 'produkter'})
+          </span>
         </motion.h1>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex gap-4 rounded-2xl bg-card p-4 shadow-soft"
-              >
-                <div className="h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden bg-secondary">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
+          {/* Produktliste — 3/5 */}
+          <div className="lg:col-span-3 space-y-4">
+            <AnimatePresence>
+              {orderDrafts.map((draft, i) => (
+                <motion.div
+                  key={draft.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="bg-card rounded-2xl border border-border/50 p-5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-serif text-lg font-semibold text-card-foreground truncate">
+                        {draft.productName}
+                      </h3>
 
-                <div className="flex flex-1 flex-col justify-between">
-                  <div>
-                    <h3 className="font-serif text-lg font-semibold text-card-foreground">
-                      {item.name}
-                    </h3>
-                    <p className="text-primary font-medium">
-                      {item.price} kr
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 rounded-full bg-secondary p-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-8 text-center font-medium">
-                        {item.quantity}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
+                      {/* Detaljer */}
+                      <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                        {draft.sizeSummary && (
+                          <li className="flex items-center gap-1.5">
+                            <ChevronRight className="w-3 h-3 shrink-0" />
+                            {draft.sizeSummary}
+                          </li>
+                        )}
+                        {draft.flavorLabel && (
+                          <li className="flex items-center gap-1.5">
+                            <ChevronRight className="w-3 h-3 shrink-0" />
+                            Smak: {draft.flavorLabel}
+                            {draft.fillingLabel ? ` · Fyll: ${draft.fillingLabel}` : ''}
+                          </li>
+                        )}
+                        {!draft.isCake && (
+                          <li className="flex items-center gap-1.5">
+                            <ChevronRight className="w-3 h-3 shrink-0" />
+                            {draft.quantity} stk
+                          </li>
+                        )}
+                        {draft.withPhoto && (
+                          <li className="flex items-center gap-1.5">
+                            <ChevronRight className="w-3 h-3 shrink-0" />
+                            Med spiselig bilde
+                          </li>
+                        )}
+                        {draft.delivery && (
+                          <li className="flex items-center gap-1.5">
+                            <CalendarDays className="w-3 h-3 shrink-0" />
+                            Hentes: {formatNorwegianDate(draft.delivery)}
+                          </li>
+                        )}
+                      </ul>
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => removeFromCart(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col items-end gap-3">
+                      <span className="font-bold text-primary text-lg whitespace-nowrap">
+                        {draft.totalPrice.toLocaleString('nb-NO')} kr
+                      </span>
+                      <button
+                        onClick={() => removeOrderDraft(draft.id)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                        title="Fjern produkt"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
-                <div className="text-right">
-                  <p className="font-semibold text-card-foreground">
-                    {item.price * item.quantity} kr
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-
-            <Button
-              variant="outline"
-              className="w-full rounded-full"
-              onClick={clearCart}
-            >
-              Tøm handlekurv
-            </Button>
+            {/* Legg til flere */}
+            <Link to="/cakes">
+              <Button variant="outline" className="w-full rounded-full gap-2 mt-2">
+                + Legg til et produkt til
+              </Button>
+            </Link>
           </div>
 
-          {/* Order Summary */}
+          {/* Ordresammendrag + kontakt — 2/5 */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl bg-card p-6 shadow-soft h-fit"
+            className="lg:col-span-2 space-y-6"
           >
-            <h2 className="font-serif text-xl font-bold text-card-foreground mb-4">
-              Ordresammendrag
-            </h2>
-
-            <div className="space-y-3 border-b border-border pb-4">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Delsum</span>
-                <span>{total} kr</span>
+            {/* Prissammendrag */}
+            <div className="rounded-2xl bg-card border border-border/50 p-6 shadow-sm">
+              <h2 className="font-serif text-lg font-bold text-card-foreground mb-4">
+                Ordresammendrag
+              </h2>
+              <div className="space-y-2 border-b border-border pb-4">
+                {orderDrafts.map((d) => (
+                  <div key={d.id} className="flex justify-between text-sm text-muted-foreground">
+                    <span className="truncate pr-2">{d.productName}</span>
+                    <span className="shrink-0">{d.totalPrice.toLocaleString('nb-NO')} kr</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>Henting</span>
-                <span className="text-primary">Gratis</span>
+              <div className="flex justify-between py-4 text-lg font-bold text-card-foreground">
+                <span>Totalt</span>
+                <span className="text-primary">{total.toLocaleString('nb-NO')} kr</span>
               </div>
             </div>
 
-            <div className="flex justify-between py-4 text-lg font-bold text-card-foreground">
-              <span>Total</span>
-              <span>{total} kr</span>
-            </div>
+            {/* Kontaktinfo */}
+            <div className="rounded-2xl bg-card border border-border/50 p-6 shadow-sm space-y-4">
+              <h2 className="font-serif text-lg font-bold text-card-foreground">
+                Kontaktinfo
+              </h2>
 
-            <Link to="/">
-              <Button className="w-full gap-2 rounded-full" size="lg">
-                Bestill nå
-                <ArrowRight className="h-5 w-5" />
+              <div>
+                <Label htmlFor="cart-name" className="text-sm font-medium mb-1 block">Navn *</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="cart-name"
+                    placeholder="Ditt navn"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="pl-10 rounded-xl"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="cart-email" className="text-sm font-medium mb-1 block">E-post *</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="cart-email"
+                    type="email"
+                    placeholder="din@epost.no"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 rounded-xl"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="cart-phone" className="text-sm font-medium mb-1 block">Telefon *</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="cart-phone"
+                    type="tel"
+                    placeholder="400 00 000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="pl-10 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handlePayAll}
+                disabled={!isValid || isSubmitting}
+                size="lg"
+                className="w-full rounded-full gap-2 mt-2"
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Behandler...</>
+                ) : (
+                  <><ShoppingBag className="w-4 h-4" /> Betal — {total.toLocaleString('nb-NO')} kr</>
+                )}
               </Button>
-            </Link>
 
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Bruk bestillingsflyten på forsiden for å fullføre bestillingen.
-            </p>
+              {!isValid && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Fyll inn navn, e-post og telefon for å betale
+                </p>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>

@@ -1,12 +1,13 @@
 /**
- * useCart — Handlekurv-kontekst med localStorage-persistering.
- * Gir hele appen tilgang til handlekurvdata og operasjoner.
+ * useCart — Handlekurv-kontekst med localStorage-persistering for enkle varer
+ * og in-memory-lagring for konfigurerte bestillingsutkast (OrderDraft).
  */
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Product } from '@/lib/types';
+import { CartItem, Product, OrderDraft } from '@/lib/types';
 
 /** Grensesnitt for handlekurv-konteksten */
 interface CartContextType {
+  // ── Enkle produktvarer ──
   items: CartItem[];
   addToCart: (product: Product) => void;
   removeFromCart: (productId: number) => void;
@@ -14,6 +15,12 @@ interface CartContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartCount: () => number;
+  // ── Bestillingsutkast (konfigurerte produkter) ──
+  orderDrafts: OrderDraft[];
+  addOrderDraft: (draft: OrderDraft) => void;
+  removeOrderDraft: (draftId: string) => void;
+  clearOrderDrafts: () => void;
+  getDraftsTotal: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -28,6 +35,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   });
+
+  // Bestillingsutkast beholdes kun i minnet (File-objekter er ikke serialiserbare)
+  const [orderDrafts, setOrderDrafts] = useState<OrderDraft[]>([]);
 
   // Synkroniser handlekurven til localStorage ved endringer
   useEffect(() => {
@@ -77,14 +87,37 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   };
 
-  /** Beregn totalbeløp */
+  /** Beregn totalbeløp for enkle varer */
   const getCartTotal = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  /** Beregn totalt antall varer */
+  /** Beregn totalt antall varer (inkluderer utkast i badge-telleren) */
   const getCartCount = () => {
-    return items.reduce((count, item) => count + item.quantity, 0);
+    const simpleCount = items.reduce((count, item) => count + item.quantity, 0);
+    return simpleCount + orderDrafts.length;
+  };
+
+  // ── Bestillingsutkast ──
+
+  /** Legg til et konfigurert produkt i utkastskurven */
+  const addOrderDraft = (draft: OrderDraft) => {
+    setOrderDrafts((prev) => [...prev, draft]);
+  };
+
+  /** Fjern ett utkast */
+  const removeOrderDraft = (draftId: string) => {
+    setOrderDrafts((prev) => prev.filter((d) => d.id !== draftId));
+  };
+
+  /** Tøm alle utkast */
+  const clearOrderDrafts = () => {
+    setOrderDrafts([]);
+  };
+
+  /** Totalbeløp for alle utkast */
+  const getDraftsTotal = () => {
+    return orderDrafts.reduce((sum, d) => sum + d.totalPrice, 0);
   };
 
   return (
@@ -97,6 +130,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         getCartTotal,
         getCartCount,
+        orderDrafts,
+        addOrderDraft,
+        removeOrderDraft,
+        clearOrderDrafts,
+        getDraftsTotal,
       }}
     >
       {children}

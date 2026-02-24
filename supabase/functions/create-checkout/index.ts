@@ -26,6 +26,7 @@ const corsHeaders = {
 
 // ─── Typer ────────────────────────────────────────────────────────────────────
 
+/** Enkelt-bestilling (eksisterende format) */
 interface CheckoutPayload {
     customerName: string;
     customerEmail: string;
@@ -42,6 +43,25 @@ interface CheckoutPayload {
     deliveryDate: string;
     imageUrls: string[];
     isCustomDesign: boolean;
+}
+
+/** Et linjeelement i en flerbestilling */
+interface LineItem {
+    name: string;
+    price: number;              // i hele kroner
+    description: string;
+    deliveryDate?: string;
+    cakeText?: string;
+}
+
+/** Flerbestilling (nytt format — multiItem: true) */
+interface MultiCheckoutPayload {
+    multiItem: true;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    lineItems: LineItem[];
+    imageUrls: string[];
 }
 
 // ─── Ordrereferanse ────────────────────────────────────────────────────────
@@ -63,7 +83,82 @@ serve(async (req: Request) => {
     }
 
     try {
-        const data: CheckoutPayload = await req.json();
+        const body = await req.json();
+
+        // ── Flerbestilling ──────────────────────────────────────────────────
+        if (body.multiItem === true) {
+            const data = body as MultiCheckoutPayload;
+
+            if (!data.customerEmail || !data.lineItems?.length) {
+                return new Response(
+                    JSON.stringify({ error: 'Mangler e-post eller produkter' }),
+                    { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            const orderRef = generateOrderRef();
+            const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+            // Lagre én ordre per linjeelement i DB
+            const records = data.lineItems.map((item) => ({
+                order_ref: orderRef,
+                customer_name: data.customerName,
+                customer_email: data.customerEmail,
+                customer_phone: data.customerPhone,
+                package_name: item.name,
+                package_price: item.price,
+                description: item.description,
+                cake_text: item.cakeText || '',
+                delivery_date: item.deliveryDate || null,
+                image_urls: data.imageUrls || [],
+                status: 'pending_payment',
+                is_custom_design: false,
+                occasion: '',
+                product_type: '',
+                quantity: '1',
+                ideas: '',
+                cake_name: item.name,
+            }));
+
+            const { error: dbError } = await supabase.from('orders').insert(records);
+            if (dbError) {
+                console.error('DB insert error (multi):', JSON.stringify(dbError));
+                return new Response(
+                    JSON.stringify({ error: 'Kunne ikke lagre ordre' }),
+                    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            // Stripe: ett linjeelement per produkt
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                mode: 'payment',
+                customer_email: data.customerEmail,
+                line_items: data.lineItems.map((item) => ({
+                    price_data: {
+                        currency: 'nok',
+                        product_data: {
+                            name: item.name,
+                            description: item.description || 'AfnanBakes bestilling',
+                        },
+                        unit_amount: Math.round(item.price * 100),
+                    },
+                    quantity: 1,
+                })),
+                metadata: { order_ref: orderRef },
+                success_url: `${SITE_URL}/ordre-bekreftelse?ref=${orderRef}&status=success`,
+                cancel_url: `${SITE_URL}/ordre-bekreftelse?ref=${orderRef}&status=cancelled`,
+                locale: 'nb',
+            });
+
+            return new Response(
+                JSON.stringify({ url: session.url, orderRef }),
+                { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // ── Enkeltbestilling (eksisterende flyt) ────────────────────────────
+        const data: CheckoutPayload = body;
 
         if (!data.customerEmail || !data.packagePrice || data.packagePrice <= 0) {
             return new Response(
@@ -74,7 +169,6 @@ serve(async (req: Request) => {
 
         const orderRef = generateOrderRef();
 
-        // Lagre ordren i DB med status pending_payment
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         const { error: dbError } = await supabase.from('orders').insert({
             order_ref: orderRef,
@@ -104,7 +198,6 @@ serve(async (req: Request) => {
             );
         }
 
-        // Opprett Stripe Checkout-session
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             mode: 'payment',
@@ -121,7 +214,7 @@ serve(async (req: Request) => {
                                 data.deliveryDate ? `Levering: ${data.deliveryDate}` : '',
                             ].filter(Boolean).join(' • ') || 'AfnanBakes bestilling',
                         },
-                        unit_amount: data.packagePrice * 100, // Stripe bruker øre
+                        unit_amount: data.packagePrice * 100,
                     },
                     quantity: 1,
                 },

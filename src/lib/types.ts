@@ -32,3 +32,33 @@ export interface Category {
   description: string;
   imageUrl: string;
 }
+
+/**
+ * En konfigurert bestilling som er parkert i kurven.
+ * Brukes av «Legg til produkt til»-funksjonen i ProductDetailPage.
+ */
+export interface OrderDraft {
+  /** Unik ID (tilfeldig UUID) */
+  id: string;
+  /** Produktnavn for visning */
+  productName: string;
+  productImageUrl: string;
+  isCake: boolean;
+  /** Oppsummeringstekst for størrelse, f.eks. "Liten · 8–10 porsjoner" */
+  sizeSummary: string;
+  flavorLabel: string;
+  fillingLabel: string;
+  quantity: number;
+  /** Ferdig beregnet totalpris inkl. tillegg */
+  totalPrice: number;
+  delivery: string;          // ISO-dato
+  withPhoto: boolean;
+  cakeText: string;
+  description: string;
+  /** Stripens linjeelement-navn */
+  packageName: string;
+  /** Betalbar pris i NOK (= totalPrice) */
+  packagePrice: number;
+  /** Inspirasjonsfiler — beholdes kun i minnet, ikke i localStorage */
+  images: File[];
+}

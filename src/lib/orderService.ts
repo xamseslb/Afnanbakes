@@ -4,6 +4,7 @@
  */
 import { supabase } from './supabase';
 import { OrderData, occasionLabels, productLabels, PHOTO_ADDON_PRICE } from './orderTypes';
+import { OrderDraft } from './types';
 import { sendConfirmationEmail } from './emailService';
 
 /** En ordrepost slik den lagres i Supabase-databasen */
@@ -51,7 +52,7 @@ export function generateOrderRef(): string {
  * Laster opp inspirasjonsbilder til Supabase Storage.
  * Returnerer offentlige URL-er for de opplastede bildene.
  */
-async function uploadImages(images: File[]): Promise<string[]> {
+export async function uploadImages(images: File[]): Promise<string[]> {
     if (images.length === 0) return [];
 
     const urls: string[] = [];
@@ -206,3 +207,56 @@ export async function submitOrder(
     }
 }
 
+/**
+ * Oppretter én Stripe Checkout-session for FLERE bestillingsutkast (handlekurv).
+ * Laster opp bilder for alle utkast, sender dem som separate linjer til Edge Function.
+ */
+export async function createMultiCheckoutSession(
+    drafts: OrderDraft[],
+    contact: { customerName: string; customerEmail: string; customerPhone: string }
+): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
+    try {
+        const allImageUrls: string[] = [];
+        for (const draft of drafts) {
+            const urls = await uploadImages(draft.images);
+            allImageUrls.push(...urls);
+        }
+
+        const lineItems = drafts.map((draft) => ({
+            name: draft.packageName,
+            price: draft.packagePrice,
+            description: [
+                draft.flavorLabel ? `Smak: ${draft.flavorLabel}` : '',
+                draft.fillingLabel ? `Fyll: ${draft.fillingLabel}` : '',
+                draft.sizeSummary || '',
+                !draft.isCake ? `Antall: ${draft.quantity} stk` : '',
+                draft.withPhoto ? 'Med spiselig bilde' : '',
+                draft.delivery ? `Hentes: ${draft.delivery}` : '',
+            ].filter(Boolean).join(' · '),
+            deliveryDate: draft.delivery,
+            cakeText: draft.cakeText,
+        }));
+
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+            body: {
+                multiItem: true,
+                customerName: contact.customerName,
+                customerEmail: contact.customerEmail,
+                customerPhone: contact.customerPhone,
+                lineItems,
+                imageUrls: allImageUrls,
+            },
+        });
+
+        if (error) {
+            console.error('Multi-checkout feilet:', error.message);
+            return { success: false, error: error.message };
+        }
+
+        return { success: true, url: data.url, orderRef: data.orderRef };
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Ukjent feil';
+        console.error('Multi-checkout-feil:', message);
+        return { success: false, error: message };
+    }
+}
