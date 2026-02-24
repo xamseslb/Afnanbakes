@@ -27,6 +27,15 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 /** Nøkkel for lagring i localStorage */
 const CART_STORAGE_KEY = 'afnanbakes_cart';
+/** Nøkkel for utkast i sessionStorage */
+const DRAFTS_SESSION_KEY = 'afnanbakes_drafts';
+
+/** Skriver utkast til sessionStorage SYNKRONT (uten File-objekter som ikke kan serialiseres) */
+function saveToSession(drafts: OrderDraft[]) {
+  try {
+    sessionStorage.setItem(DRAFTS_SESSION_KEY, JSON.stringify(drafts.map((d) => ({ ...d, images: [] }))));
+  } catch { /* ignorer */ }
+}
 
 /** Provider som wrapper appen og tilbyr handlekurvfunksjonalitet */
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -36,16 +45,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : [];
   });
 
-  // Bestillingsutkast – lagres i sessionStorage (uten File-objekter som ikke kan serialiseres).
-  // File-objektene trenger vi bare under opplasting; etter at brukeren er videresendt til Stripe
-  // er bildene allerede lastet opp og URL-er er sendt.
-  const DRAFTS_SESSION_KEY = 'afnanbakes_drafts';
+  // Bestillingsutkast – initialisert fra sessionStorage (uten File-objekter)
   const [orderDrafts, setOrderDrafts] = useState<OrderDraft[]>(() => {
     try {
       const stored = sessionStorage.getItem(DRAFTS_SESSION_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as OrderDraft[];
-        return parsed.map((d) => ({ ...d, images: [] })); // File-objekter kan ikke serialiseres
+        return (JSON.parse(stored) as OrderDraft[]).map((d) => ({ ...d, images: [] }));
       }
     } catch { /* ignorer */ }
     return [];
@@ -56,13 +61,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  // Synkroniser utkast til sessionStorage (uten File-objekter som ikke kan serialiseres)
-  useEffect(() => {
-    try {
-      const toStore = orderDrafts.map((d) => ({ ...d, images: [] }));
-      sessionStorage.setItem(DRAFTS_SESSION_KEY, JSON.stringify(toStore));
-    } catch { /* ignorer */ }
-  }, [orderDrafts]);
+  // Backup-synkronisering til sessionStorage ved re-renders
+  useEffect(() => { saveToSession(orderDrafts); }, [orderDrafts]);
 
   /** Legg til et produkt (øker antall hvis det allerede finnes) */
   const addToCart = (product: Product) => {
@@ -122,16 +122,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   /** Legg til et konfigurert produkt i utkastskurven */
   const addOrderDraft = (draft: OrderDraft) => {
-    setOrderDrafts((prev) => [...prev, draft]);
+    setOrderDrafts((prev) => {
+      const updated = [...prev, draft];
+      saveToSession(updated); // SYNKRONT: sikrer at sessionStorage alltid er oppdatert
+      return updated;
+    });
   };
 
   /** Fjern ett utkast */
   const removeOrderDraft = (draftId: string) => {
-    setOrderDrafts((prev) => prev.filter((d) => d.id !== draftId));
+    setOrderDrafts((prev) => {
+      const updated = prev.filter((d) => d.id !== draftId);
+      saveToSession(updated);
+      return updated;
+    });
   };
 
   /** Tøm alle utkast */
   const clearOrderDrafts = () => {
+    saveToSession([]); // SYNKRONT: tøm sessionStorage før setState
     setOrderDrafts([]);
   };
 
