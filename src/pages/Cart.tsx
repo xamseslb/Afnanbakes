@@ -24,9 +24,12 @@ export default function Cart() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const CONTACT_KEY = 'afnanbakes_contact';
+  const savedContact = (() => { try { return JSON.parse(localStorage.getItem(CONTACT_KEY) || '{}'); } catch { return {}; } })();
+
+  const [name, setName] = useState(savedContact.name || '');
+  const [email, setEmail] = useState(savedContact.email || '');
+  const [phone, setPhone] = useState(savedContact.phone || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const total = getDraftsTotal();

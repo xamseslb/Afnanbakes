@@ -64,9 +64,11 @@ export default function ProductDetailPage() {
     const CUPCAKE_PRESETS = [6, 12, 24];
 
     // ── Kontaktinfo ──
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
+    const CONTACT_KEY = 'afnanbakes_contact';
+    const savedContact = (() => { try { return JSON.parse(localStorage.getItem(CONTACT_KEY) || '{}'); } catch { return {}; } })();
+    const [name, setName] = useState(savedContact.name || '');
+    const [email, setEmail] = useState(savedContact.email || '');
+    const [phone, setPhone] = useState(savedContact.phone || '');
 
     // ── Kalender ──
     const [availability, setAvailability] = useState<DateAvailability[]>([]);
@@ -214,6 +216,10 @@ export default function ProductDetailPage() {
             images,
         };
         addOrderDraft(draft);
+        // Lagre kontaktinfo for forhåndsutfylling i Cart
+        try {
+            localStorage.setItem('afnanbakes_contact', JSON.stringify({ name, email, phone }));
+        } catch { /* ignorer localStorage-feil */ }
         if (destination === 'cart') {
             navigate('/cart');
         } else {
