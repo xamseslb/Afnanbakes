@@ -176,7 +176,7 @@ export default function ProductDetailPage() {
             cakeText,
             quantity: String(quantity),
             deliveryDate,
-            images,
+            images: withPhoto && photoImage ? [photoImage, ...images] : images,
             directPrice: !isCake
                 ? product.price * quantity + (withPhoto ? PHOTO_ADDON_PRICE : 0)
                 : undefined,
