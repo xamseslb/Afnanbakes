@@ -29,8 +29,8 @@ export function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl font-bold tracking-tight">
-              Afnan<span className="text-primary">Bakes</span>
+            <span className="font-serif text-2xl font-bold tracking-tight logo-text">
+              AfnanBakes
             </span>
           </Link>
 
@@ -100,8 +100,8 @@ export function Header() {
             >
               {/* Panel header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
-                <span className="font-serif text-lg font-bold">
-                  Afnan<span className="text-primary">Bakes</span>
+                <span className="font-serif text-lg font-bold logo-text">
+                  AfnanBakes
                 </span>
                 <Button
                   variant="ghost"

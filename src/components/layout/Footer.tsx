@@ -12,8 +12,8 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link to="/" className="inline-block">
-              <span className="font-serif text-2xl font-bold tracking-tight text-foreground">
-                Afnan<span className="text-primary">Bakes</span>
+              <span className="font-serif text-2xl font-bold tracking-tight logo-text">
+                AfnanBakes
               </span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">

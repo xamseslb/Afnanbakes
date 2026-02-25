@@ -180,4 +180,17 @@
   .font-handwritten {
     font-family: 'Dancing Script', cursive;
   }
+
+  .logo-text {
+    background: linear-gradient(135deg, #d4627a 0%, #c06090 35%, #a855a0 65%, #9645b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 1px 2px rgba(168, 85, 160, 0.25));
+    transition: filter 0.3s ease;
+  }
+
+  .logo-text:hover {
+    filter: drop-shadow(0 2px 8px rgba(168, 85, 160, 0.4));
+  }
 }
