@@ -1,10 +1,11 @@
 /**
- * AdminLogin — Innloggingsside for admin-panelet. Bruker hemmelig passord.
+ * AdminLogin — Innloggingsside for admin-panelet.
+ * Bruker Supabase Auth (e-post + passord).
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Cake, Eye, EyeOff } from 'lucide-react';
+import { Lock, Cake, Eye, EyeOff, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -12,28 +13,47 @@ import { useAdmin } from '@/hooks/useAdmin';
 const ADMIN = import.meta.env.VITE_ADMIN_PATH || 'admin';
 
 export default function AdminLogin() {
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const { login, isAuthenticated } = useAdmin();
+    const [submitting, setSubmitting] = useState(false);
+    const { login, isAuthenticated, loading } = useAdmin();
     const navigate = useNavigate();
 
-    // If already authenticated, redirect
-    if (isAuthenticated) {
-        navigate(`/${ADMIN}/dashboard`, { replace: true });
-        return null;
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate(`/${ADMIN}/dashboard`, { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSubmitting(true);
 
-        if (login(password)) {
-            navigate(`/${ADMIN}/dashboard`, { replace: true });
-        } else {
-            setError('Feil passord. Prøv igjen.');
+        const result = await login(email, password);
+
+        if (!result.success) {
+            setError(
+                result.error === 'Invalid login credentials'
+                    ? 'Feil e-post eller passord. Prøv igjen.'
+                    : result.error || 'Innlogging feilet.'
+            );
             setPassword('');
         }
+        // Redirect happens via useEffect when isAuthenticated changes
+
+        setSubmitting(false);
     };
 
     return (
@@ -68,24 +88,41 @@ export default function AdminLogin() {
                         </div>
                         <div>
                             <h2 className="font-semibold text-foreground">Logg inn</h2>
-                            <p className="text-sm text-muted-foreground">Skriv inn admin-passordet</p>
+                            <p className="text-sm text-muted-foreground">Bruk admin-kontoen din</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Email */}
                         <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <Input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="E-post"
+                                className="h-12 pl-11 bg-background border-border/50 focus:border-primary/50 rounded-xl text-base"
+                                autoFocus
+                                required
+                            />
+                        </div>
+
+                        {/* Password */}
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                             <Input
                                 type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Passord"
-                                className="h-12 pr-12 bg-background border-border/50 focus:border-primary/50 rounded-xl text-base"
-                                autoFocus
+                                className="h-12 pl-11 pr-12 bg-background border-border/50 focus:border-primary/50 rounded-xl text-base"
+                                required
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                aria-label={showPassword ? 'Skjul passord' : 'Vis passord'}
                             >
                                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
@@ -103,9 +140,10 @@ export default function AdminLogin() {
 
                         <Button
                             type="submit"
+                            disabled={submitting}
                             className="w-full h-12 rounded-xl text-base font-semibold shadow-soft hover:shadow-card transition-all duration-300"
                         >
-                            Logg inn
+                            {submitting ? 'Logger inn…' : 'Logg inn'}
                         </Button>
                     </form>
                 </div>

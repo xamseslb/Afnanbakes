@@ -24,9 +24,65 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ─── Server-side produktkatalog (kilde til sannhet for priser) ──────────────
+
+/** Prisene her er den eneste kilde til sannhet — klient kan IKKE manipulere */
+const PRODUCT_PRICES: Record<number, { name: string; price: number; category: 'cakes' | 'cupcakes' }> = {
+    1: { name: 'Bursdagskake', price: 499, category: 'cakes' },
+    2: { name: 'Bryllupskake', price: 499, category: 'cakes' },
+    3: { name: 'Baby Shower-kake', price: 499, category: 'cakes' },
+    4: { name: 'Anledningskake', price: 499, category: 'cakes' },
+    5: { name: 'Vanilje Cupcakes', price: 30, category: 'cupcakes' },
+    6: { name: 'Sjokolade Cupcakes', price: 32, category: 'cupcakes' },
+    7: { name: 'Rød Fløyel Cupcakes', price: 35, category: 'cupcakes' },
+    8: { name: 'Sitron Cupcakes', price: 30, category: 'cupcakes' },
+};
+
+const CAKE_SIZES: Record<string, { price: number; persons: string }> = {
+    small: { price: 499, persons: '8–10 porsjoner' },
+    medium: { price: 649, persons: '10–12 porsjoner' },
+};
+
+const PHOTO_ADDON_PRICE = 200;
+
+/**
+ * Beregner korrekt pris server-side.
+ * Returnerer beregnet pris, eller null hvis input er ugyldig.
+ */
+function calculateServerPrice(body: Record<string, unknown>): number | null {
+    const productId = body.productId as number | undefined;
+    const sizeId = body.sizeId as string | undefined;
+    const quantity = Math.max(1, parseInt(String(body.quantity || '1'), 10));
+    const withPhoto = body.withPhoto === true;
+
+    // Kaker: pris basert på størrelse
+    if (sizeId && CAKE_SIZES[sizeId]) {
+        let price = CAKE_SIZES[sizeId].price;
+        if (withPhoto) price += PHOTO_ADDON_PRICE;
+        return price;
+    }
+
+    // Cupcakes / andre produkter: pris basert på produkt-ID × antall
+    if (productId && PRODUCT_PRICES[productId]) {
+        const product = PRODUCT_PRICES[productId];
+        if (product.category === 'cupcakes') {
+            let price = product.price * quantity;
+            if (withPhoto) price += PHOTO_ADDON_PRICE;
+            return price;
+        }
+        // Kake uten størrelse (fallback)
+        let price = product.price;
+        if (withPhoto) price += PHOTO_ADDON_PRICE;
+        return price;
+    }
+
+    // Ukjent produkt — returner null (vil bruke client-pris med advarsel)
+    return null;
+}
+
 // ─── Typer ────────────────────────────────────────────────────────────────────
 
-/** Enkelt-bestilling (eksisterende format) */
+/** Enkelt-bestilling */
 interface CheckoutPayload {
     customerName: string;
     customerEmail: string;
@@ -34,7 +90,7 @@ interface CheckoutPayload {
     occasion: string;
     productType: string;
     packageName: string;
-    packagePrice: number;       // i hele kroner
+    packagePrice: number;       // klientens pris (blir overskrevet av server)
     quantity: string;
     description: string;
     ideas: string;
@@ -43,18 +99,26 @@ interface CheckoutPayload {
     deliveryDate: string;
     imageUrls: string[];
     isCustomDesign: boolean;
+    // Nye felter for server-side prisberegning
+    productId?: number;
+    sizeId?: string;
+    withPhoto?: boolean;
 }
 
 /** Et linjeelement i en flerbestilling */
 interface LineItem {
     name: string;
-    price: number;              // i hele kroner
+    price: number;              // klientens pris (blir overskrevet av server)
     description: string;
     deliveryDate?: string;
     cakeText?: string;
+    productId?: number;
+    sizeId?: string;
+    quantity?: number;
+    withPhoto?: boolean;
 }
 
-/** Flerbestilling (nytt format — multiItem: true) */
+/** Flerbestilling */
 interface MultiCheckoutPayload {
     multiItem: true;
     customerName: string;
@@ -99,8 +163,26 @@ serve(async (req: Request) => {
             const orderRef = generateOrderRef();
             const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+            // Server-side prisberegning for hvert linjeelement
+            const verifiedItems = data.lineItems.map((item) => {
+                const serverPrice = calculateServerPrice({
+                    productId: item.productId,
+                    sizeId: item.sizeId,
+                    quantity: String(item.quantity || 1),
+                    withPhoto: item.withPhoto,
+                });
+
+                const finalPrice = serverPrice ?? item.price; // Fallback til klient-pris kun hvis ukjent produkt
+
+                if (serverPrice !== null && serverPrice !== item.price) {
+                    console.warn(`Prisavvik: klient=${item.price}, server=${serverPrice} for ${item.name}`);
+                }
+
+                return { ...item, price: finalPrice };
+            });
+
             // Lagre én ordre per linjeelement i DB
-            const records = data.lineItems.map((item) => ({
+            const records = verifiedItems.map((item) => ({
                 order_ref: orderRef,
                 customer_name: data.customerName,
                 customer_email: data.customerEmail,
@@ -115,7 +197,7 @@ serve(async (req: Request) => {
                 is_custom_design: false,
                 occasion: '',
                 product_type: '',
-                quantity: '1',
+                quantity: String(item.quantity || 1),
                 ideas: '',
                 cake_name: item.name,
             }));
@@ -129,12 +211,12 @@ serve(async (req: Request) => {
                 );
             }
 
-            // Stripe: ett linjeelement per produkt
+            // Stripe: ett linjeelement per produkt (server-beregnede priser)
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
                 mode: 'payment',
                 customer_email: data.customerEmail,
-                line_items: data.lineItems.map((item) => ({
+                line_items: verifiedItems.map((item) => ({
                     price_data: {
                         currency: 'nok',
                         product_data: {
@@ -160,9 +242,30 @@ serve(async (req: Request) => {
         // ── Enkeltbestilling (eksisterende flyt) ────────────────────────────
         const data: CheckoutPayload = body;
 
-        if (!data.customerEmail || !data.packagePrice || data.packagePrice <= 0) {
+        if (!data.customerEmail) {
             return new Response(
-                JSON.stringify({ error: 'Mangler e-post eller pris' }),
+                JSON.stringify({ error: 'Mangler e-post' }),
+                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // Server-side prisberegning — overskriver klientens pris
+        const serverPrice = calculateServerPrice({
+            productId: data.productId,
+            sizeId: data.sizeId,
+            quantity: data.quantity,
+            withPhoto: data.withPhoto,
+        });
+
+        const finalPrice = serverPrice ?? data.packagePrice;
+
+        if (serverPrice !== null && serverPrice !== data.packagePrice) {
+            console.warn(`Prisavvik (single): klient=${data.packagePrice}, server=${serverPrice}`);
+        }
+
+        if (!finalPrice || finalPrice <= 0) {
+            return new Response(
+                JSON.stringify({ error: 'Ugyldig pris' }),
                 { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
@@ -178,7 +281,7 @@ serve(async (req: Request) => {
             occasion: data.occasion,
             product_type: data.productType,
             package_name: data.packageName,
-            package_price: data.packagePrice,
+            package_price: finalPrice,   // Server-beregnet pris
             quantity: data.quantity || '1',
             description: data.description,
             ideas: data.ideas,
@@ -214,7 +317,7 @@ serve(async (req: Request) => {
                                 data.deliveryDate ? `Levering: ${data.deliveryDate}` : '',
                             ].filter(Boolean).join(' • ') || 'AfnanBakes bestilling',
                         },
-                        unit_amount: data.packagePrice * 100,
+                        unit_amount: finalPrice * 100,   // Server-beregnet pris
                     },
                     quantity: 1,
                 },

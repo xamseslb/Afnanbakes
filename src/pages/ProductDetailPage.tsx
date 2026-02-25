@@ -180,6 +180,7 @@ export default function ProductDetailPage() {
             directPrice: !isCake
                 ? product.price * quantity + (withPhoto ? PHOTO_ADDON_PRICE : 0)
                 : undefined,
+            productId: product.id,
         };
 
         // Alle produkter går gjennom Stripe
@@ -229,6 +230,8 @@ export default function ProductDetailPage() {
             packagePrice: totalPrice,
             images: [],           // File-objekter trengs ikke lenger
             imageUrls: uploadedUrls, // Forhåndsopplastede URL-er
+            productId: product.id,
+            sizeId: isCake ? selectedSize.id : undefined,
         };
         addOrderDraft(draft);
         // Lagre kontaktinfo for forhåndsutfylling i Cart

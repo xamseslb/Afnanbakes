@@ -1,34 +1,46 @@
 /**
- * useAdmin — Håndterer admin-autentisering med sessionStorage.
- * Passord valideres mot VITE_ADMIN_PASSWORD fra miljøvariabler.
+ * useAdmin — Håndterer admin-autentisering med Supabase Auth.
+ * Erstatter gammel client-side passordsjekk med ekte server-side auth.
  */
-import { useState, useCallback } from 'react';
-
-/** Nøkkel for admin-sesjon i sessionStorage */
-const ADMIN_KEY = 'afnanbakes_admin_session';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export function useAdmin() {
-    /** Sjekk om admin allerede er innlogget fra sessionStorage */
-    const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return sessionStorage.getItem(ADMIN_KEY) === 'true';
-    });
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+    const [loading, setLoading] = useState(true);
 
-    /** Logg inn med passord — returnerer true hvis riktig */
-    const login = useCallback((password: string): boolean => {
-        const correctPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin';
-        if (password === correctPassword) {
-            sessionStorage.setItem(ADMIN_KEY, 'true');
-            setIsAuthenticated(true);
-            return true;
+    // Sjekk om bruker allerede er innlogget via Supabase session
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setIsAuthenticated(!!session);
+            setLoading(false);
+        });
+
+        // Lytt på auth-endringer (login, logout, token refresh)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setIsAuthenticated(!!session);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    /** Logg inn med e-post og passord via Supabase Auth */
+    const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            return { success: false, error: error.message };
         }
-        return false;
+
+        setIsAuthenticated(true);
+        return { success: true };
     }, []);
 
     /** Logg ut og fjern sesjonen */
-    const logout = useCallback(() => {
-        sessionStorage.removeItem(ADMIN_KEY);
+    const logout = useCallback(async () => {
+        await supabase.auth.signOut();
         setIsAuthenticated(false);
     }, []);
 
-    return { isAuthenticated, login, logout };
+    return { isAuthenticated, loading, login, logout };
 }

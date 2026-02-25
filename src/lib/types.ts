@@ -63,4 +63,8 @@ export interface OrderDraft {
   images: File[];
   /** Forhåndsopplastede bilde-URL-er (kan serialiseres til sessionStorage) */
   imageUrls: string[];
+  /** Produkt-ID for server-side prisberegning */
+  productId?: number;
+  /** Størrelses-ID (f.eks. 'small', 'medium') for server-side prisberegning */
+  sizeId?: string;
 }

@@ -115,7 +115,9 @@ export async function createCheckoutSession(
                 deliveryDate: orderData.deliveryDate,
                 imageUrls,
                 isCustomDesign: orderData.isCustomDesign,
-                // Nye felter
+                // Felter for server-side prisberegning
+                productId: orderData.productId,
+                sizeId: orderData.selectedSize?.id || '',
                 size: orderData.selectedSize?.label || '',
                 sizePersons: orderData.selectedSize?.persons || '',
                 flavor: orderData.selectedFlavor?.label || '',
@@ -269,7 +271,7 @@ export async function createMultiCheckoutSession(
             productType: '',
             packageName: packageLabel,
             packagePrice: totalPrice,
-            quantity: '1',
+            quantity: drafts.length === 1 ? String(drafts[0].quantity) : '1',
             description: combinedDescription,
             ideas: '',
             cakeName: packageLabel,
@@ -277,6 +279,10 @@ export async function createMultiCheckoutSession(
             deliveryDate: primaryDeliveryDate,
             imageUrls: allImageUrls,
             isCustomDesign: false,
+            // Server-side prisberegning (nøyaktig for enkeltvarer)
+            productId: drafts.length === 1 ? drafts[0].productId : undefined,
+            sizeId: drafts.length === 1 ? drafts[0].sizeId : undefined,
+            withPhoto: drafts.length === 1 ? drafts[0].withPhoto : undefined,
         };
 
         const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {

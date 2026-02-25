@@ -97,6 +97,7 @@ export interface OrderData {
   deliveryDate: string;
   images: File[];
   directPrice?: number; // Brukes for produkter uten selectedSize/selectedPackage (cupcakes, cookies)
+  productId?: number;   // Produkt-ID for server-side prisberegning
 }
 
 /** Norske navn for hver anledning — brukes i UI og e-poster */
