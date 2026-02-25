@@ -48,11 +48,12 @@ export const statusColors: Record<OrderStatus, string> = {
     cancelled: 'bg-red-100 text-red-800',
 };
 
-/** Henter alle bestillinger, nyeste først */
+/** Henter alle bestillinger, nyeste først (ekskluder ubetalte) */
 export async function fetchOrders(): Promise<OrderRow[]> {
     const { data, error } = await supabase
         .from('orders')
         .select('*')
+        .not('status', 'eq', 'pending_payment')
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -81,14 +82,13 @@ export async function updateOrderStatus(
     return true;
 }
 
-/** Beregner antall bestillinger per status */
+/** Beregner antall bestillinger per status (pending_payment er filtrert ut) */
 export function getOrderStats(orders: OrderRow[]) {
     return {
-        pending_payment: orders.filter((o) => o.status === 'pending_payment').length,
         pending: orders.filter((o) => o.status === 'pending').length,
         confirmed: orders.filter((o) => o.status === 'confirmed').length,
         completed: orders.filter((o) => o.status === 'completed').length,
         cancelled: orders.filter((o) => o.status === 'cancelled').length,
-        total: orders.length,
+        total: orders.filter((o) => o.status !== 'cancelled').length,
     };
 }

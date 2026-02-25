@@ -38,10 +38,9 @@ import {
 } from '@/lib/adminService';
 import { formatNorwegianDate } from '@/lib/calendarService';
 
-const allStatuses: OrderStatus[] = ['pending_payment', 'pending', 'confirmed', 'completed', 'cancelled'];
+const allStatuses: OrderStatus[] = ['pending', 'confirmed', 'completed', 'cancelled'];
 
-const statusIcons: Record<OrderStatus, React.ElementType> = {
-    pending_payment: CreditCard,
+const statusIcons: Record<string, React.ElementType> = {
     pending: Clock,
     confirmed: Package,
     completed: CheckCircle2,
