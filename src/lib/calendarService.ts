@@ -40,10 +40,11 @@ export async function fetchAvailability(
     const to = toDate || formatDate(endDate);
 
     // Hent aktive bestillinger med leveringsdato i vinduet
+    // Ekskluder ubetalte (pending_payment) og kansellerte ordrer
     const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('delivery_date, status')
-        .not('status', 'eq', 'cancelled')
+        .in('status', ['pending', 'confirmed', 'completed'])
         .not('delivery_date', 'is', null)
         .gte('delivery_date', from)
         .lte('delivery_date', to);
