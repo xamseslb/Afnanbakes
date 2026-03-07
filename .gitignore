@@ -13,6 +13,10 @@ dist-ssr
 *.local
 .env
 
+# Java/Spring Boot secrets (properties med passord)
+src/main/resources/application-dev.properties
+src/main/resources/application-local.properties
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -48,23 +48,47 @@ export function generateOrderRef(): string {
     return `AB-${yy}${mm}${dd}-${code}`;
 }
 
+/** Tillatte bildetyper for opplasting */
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+/** Maks filstørrelse per bilde (5 MB) */
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+/** Maks antall bilder per bestilling */
+const MAX_IMAGE_COUNT = 5;
+
 /**
  * Laster opp inspirasjonsbilder til Supabase Storage.
+ * Validerer filtype, størrelse og antall før opplasting.
  * Returnerer offentlige URL-er for de opplastede bildene.
  */
 export async function uploadImages(images: File[]): Promise<string[]> {
     if (images.length === 0) return [];
 
+    // Begrens antall bilder
+    const filesToUpload = images.slice(0, MAX_IMAGE_COUNT);
     const urls: string[] = [];
 
-    for (const file of images) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    for (const file of filesToUpload) {
+        // Valider filtype
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            console.warn(`Ugyldig filtype avvist: ${file.type} (${file.name})`);
+            continue;
+        }
+
+        // Valider filstørrelse
+        if (file.size > MAX_IMAGE_SIZE) {
+            console.warn(`For stor fil avvist: ${(file.size / 1024 / 1024).toFixed(1)} MB (${file.name})`);
+            continue;
+        }
+
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        // Tving sikker filendelse (kun bilde-endelser)
+        const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt) ? fileExt : 'jpg';
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExt}`;
         const filePath = `order-images/${fileName}`;
 
         const { error } = await supabase.storage
             .from('orders')
-            .upload(filePath, file);
+            .upload(filePath, file, { contentType: file.type });
 
         if (error) {
             console.error('Bildeopplasting feilet:', error.message);

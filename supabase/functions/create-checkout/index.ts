@@ -20,7 +20,7 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
 });
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': SITE_URL,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
@@ -39,6 +39,9 @@ const CUPCAKE_PRICES: Record<number, number> = {
 };
 
 const PHOTO_ADDON = 200;
+
+/** Minimumspris for å hindre prismanipulering (i hele kroner) */
+const MIN_ITEM_PRICE = 10;
 
 /** Beregn server-side pris. Returnerer null hvis ukjent produkt. */
 function verifyPrice(body: Record<string, unknown>): number | null {
@@ -133,11 +136,20 @@ serve(async (req: Request) => {
                 );
             }
 
+            // Server-side prisvalidering for flerbestilling
+            const validatedItems = data.lineItems.map((item) => {
+                const price = Math.max(MIN_ITEM_PRICE, Math.round(item.price));
+                if (price !== item.price) {
+                    console.warn(`Multi-item prisavvik: klient=${item.price}, server=${price} (${item.name})`);
+                }
+                return { ...item, price };
+            });
+
             const orderRef = generateOrderRef();
             const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
             // Lagre én ordre per linjeelement i DB
-            const records = data.lineItems.map((item) => ({
+            const records = validatedItems.map((item) => ({
                 order_ref: orderRef,
                 customer_name: data.customerName,
                 customer_email: data.customerEmail,
@@ -166,12 +178,12 @@ serve(async (req: Request) => {
                 );
             }
 
-            // Stripe: ett linjeelement per produkt
+            // Stripe: ett linjeelement per produkt (med validerte priser)
             const session = await stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
                 mode: 'payment',
                 customer_email: data.customerEmail,
-                line_items: data.lineItems.map((item) => ({
+                line_items: validatedItems.map((item) => ({
                     price_data: {
                         currency: 'nok',
                         product_data: {

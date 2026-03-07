@@ -7,9 +7,13 @@
 //                    or use onboarding@resend.dev for testing
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!;
 const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL') || 'onboarding@resend.dev';
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://afnanbakes.com';
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // ─── Typer ────────────────────────────────────────────────────────────────────
 
@@ -158,11 +162,16 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': SITE_URL,
         'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       },
     });
   }
+
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': SITE_URL,
+    'Content-Type': 'application/json',
+  };
 
   try {
     const data: OrderPayload = await req.json();
@@ -174,7 +183,30 @@ serve(async (req: Request) => {
     if (!recipientEmail || !data.orderRef) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: corsHeaders,
+      });
+    }
+
+    // Sikkerhetssjekk: Verifiser at ordrereferansen finnes og e-posten matcher
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: order, error: dbError } = await supabase
+      .from('orders')
+      .select('customer_email')
+      .eq('order_ref', data.orderRef)
+      .single();
+
+    if (dbError || !order) {
+      return new Response(JSON.stringify({ error: 'Ordre ikke funnet' }), {
+        status: 404,
+        headers: corsHeaders,
+      });
+    }
+
+    // Verifiser at e-posten matcher ordren (hindrer spam til vilkårlige adresser)
+    if (order.customer_email?.toLowerCase() !== recipientEmail.toLowerCase()) {
+      return new Response(JSON.stringify({ error: 'E-post samsvarer ikke med ordre' }), {
+        status: 403,
+        headers: corsHeaders,
       });
     }
 
@@ -207,19 +239,19 @@ serve(async (req: Request) => {
       console.error('Resend API error:', result);
       return new Response(JSON.stringify({ error: result }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: corsHeaders,
       });
     }
 
     return new Response(JSON.stringify({ success: true, id: result.id }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
     });
   } catch (err) {
     console.error('Edge function error:', err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: corsHeaders,
     });
   }
 });

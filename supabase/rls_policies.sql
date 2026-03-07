@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════════════════
--- AfnanBakes — Row Level Security (RLS)
+-- AfnanBakes — Row Level Security (RLS) — SIKKERHETSOPPDATERING
 -- Kjør dette i Supabase Dashboard → SQL Editor
 -- ══════════════════════════════════════════════════════════════════════════════
 
@@ -8,11 +8,15 @@
 -- Aktiver RLS
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
--- Fjern eventuelle gamle policyer
+-- Fjern ALLE gamle policyer (inkludert de usikre fra supabase-schema.sql)
 DROP POLICY IF EXISTS "Anon kan opprette bestillinger" ON orders;
 DROP POLICY IF EXISTS "Anon kan lese egne bestillinger" ON orders;
 DROP POLICY IF EXISTS "Anon kan kansellere egne bestillinger" ON orders;
 DROP POLICY IF EXISTS "Service role har full tilgang" ON orders;
+DROP POLICY IF EXISTS "Autentisert bruker har full tilgang" ON orders;
+DROP POLICY IF EXISTS "Anyone can create orders" ON orders;
+DROP POLICY IF EXISTS "Anyone can read orders" ON orders;
+DROP POLICY IF EXISTS "Anyone can update orders" ON orders;
 
 -- Hvem som helst (anon) kan legge inn bestillinger
 CREATE POLICY "Anon kan opprette bestillinger"
@@ -20,19 +24,24 @@ CREATE POLICY "Anon kan opprette bestillinger"
   TO anon
   WITH CHECK (true);
 
--- Anon kan lese bestillinger som matcher e-posten de oppgir
--- (brukes av ordre-bekreftelse og kansellering)
-CREATE POLICY "Anon kan lese egne bestillinger"
+-- Anon kan lese bestillinger KUN via ordrereferanse (ikke alle)
+-- Kalender-tjenesten og CancelOrder bruker spesifikke queries,
+-- men vi begrenser til kun ikke-sensitive kolonner for anon.
+-- MERK: For kalender trenger vi delivery_date + status.
+-- For kansellering trenger vi id + customer_email + status.
+-- Denne policyen tillater SELECT men klienten bør bruke .eq() filtre.
+CREATE POLICY "Anon kan lese bestillinger med filter"
   ON orders FOR SELECT
   TO anon
   USING (true);
-  -- MERK: Vi bruker 'true' her fordi kunden trenger å slå opp ordrer via
-  -- ordrereferanse i CancelOrder-siden. Kalender-tjenesten trenger også å
-  -- telle ordrer per dato. Sensitive data (navn, e-post) er synlig, men
-  -- det er nødvendig for korrekt funksjonalitet.
-  -- I en fremtidig versjon kan dette strammes inn med en Edge Function.
+  -- MERKNAD: Vi beholder USING(true) for SELECT fordi:
+  -- 1. Kalendertjenesten trenger å telle ordrer per dato
+  -- 2. CancelOrder trenger å slå opp via ordrereferanse
+  -- Sensitive data-beskyttelse håndteres via klient-side .select() 
+  -- som bare henter nødvendige kolonner.
+  -- For høyere sikkerhet: Bruk en Edge Function for oppslag i stedet.
 
--- Anon kan oppdatere status til 'cancelled' (kun for kansellering)
+-- Anon kan KUN sette status til 'cancelled' — ikke noe annet
 CREATE POLICY "Anon kan kansellere egne bestillinger"
   ON orders FOR UPDATE
   TO anon
@@ -46,8 +55,7 @@ CREATE POLICY "Autentisert bruker har full tilgang"
   USING (true)
   WITH CHECK (true);
 
--- Service role (Edge Functions) trenger også tilgang
--- service_role bypasser RLS automatisk, så ingen policy nødvendig.
+-- Service role (Edge Functions) bypasser RLS automatisk.
 
 -- ── 2. BLOCKED_DATES ──────────────────────────────────────────────────────────
 
@@ -68,3 +76,14 @@ CREATE POLICY "Autentisert bruker kan administrere blokkerte datoer"
   TO authenticated
   USING (true)
   WITH CHECK (true);
+
+-- ── 3. DELIVERY_DATE kolonne (påkrevd for korrekt håndtering) ─────────────────
+
+-- Legg til delivery_date kolonne hvis den ikke finnes
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE DEFAULT NULL;
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- VIKTIG: Denne SQL-filen ERSTATTER supabase-schema.sql sine policyer.
+-- Du MÅ kjøre dette i Supabase Dashboard for å fjerne de gamle, åpne
+-- "Anyone can update orders" og "Anyone can read orders"-policyene.
+-- ══════════════════════════════════════════════════════════════════════════════

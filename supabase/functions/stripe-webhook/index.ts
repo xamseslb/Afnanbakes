@@ -19,21 +19,22 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL') || 'onboarding@resend.dev';
+const SITE_URL = Deno.env.get('SITE_URL') || 'https://afnanbakes.com';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: '2023-10-16',
-    httpClient: Stripe.createFetchHttpClient(),
+  apiVersion: '2023-10-16',
+  httpClient: Stripe.createFetchHttpClient(),
 });
 
 // ─── Send bekreftelsesmail ─────────────────────────────────────────────────
 
 async function sendConfirmationEmail(order: Record<string, unknown>) {
-    if (!RESEND_API_KEY) {
-        console.log('No RESEND_API_KEY, skipping email');
-        return;
-    }
+  if (!RESEND_API_KEY) {
+    console.log('No RESEND_API_KEY, skipping email');
+    return;
+  }
 
-    const html = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -93,116 +94,116 @@ async function sendConfirmationEmail(order: Record<string, unknown>) {
 </body>
 </html>`;
 
-    try {
-        await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${RESEND_API_KEY}`,
-            },
-            body: JSON.stringify({
-                from: `AfnanBakes <${SENDER_EMAIL}>`,
-                to: [order.customer_email],
-                subject: `Betaling bekreftet ${order.order_ref} - AfnanBakes`,
-                html,
-            }),
-        });
-    } catch (e) {
-        console.error('Email send error:', e);
-    }
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: `AfnanBakes <${SENDER_EMAIL}>`,
+        to: [order.customer_email],
+        subject: `Betaling bekreftet ${order.order_ref} - AfnanBakes`,
+        html,
+      }),
+    });
+  } catch (e) {
+    console.error('Email send error:', e);
+  }
 }
 
 // ─── Server ────────────────────────────────────────────────────────────────
 
 serve(async (req: Request) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', {
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
-            },
-        });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: {
+        'Access-Control-Allow-Origin': SITE_URL,
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+      },
+    });
+  }
+
+  try {
+    const body = await req.text();
+    const signature = req.headers.get('stripe-signature');
+
+    if (!signature) {
+      return new Response('Missing stripe-signature', { status: 400 });
     }
 
+    // Verifiser webhook-signatur
+    let event: Stripe.Event;
     try {
-        const body = await req.text();
-        const signature = req.headers.get('stripe-signature');
-
-        if (!signature) {
-            return new Response('Missing stripe-signature', { status: 400 });
-        }
-
-        // Verifiser webhook-signatur
-        let event: Stripe.Event;
-        try {
-            event = await stripe.webhooks.constructEventAsync(body, signature, STRIPE_WEBHOOK_SECRET);
-        } catch (err) {
-            console.error('Webhook signature verification failed:', err);
-            return new Response(`Webhook Error: ${err.message}`, { status: 400 });
-        }
-
-        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object as Stripe.Checkout.Session;
-                const orderRef = session.metadata?.order_ref;
-
-                if (orderRef) {
-                    // Oppdater ordrestatus til pending (betalt)
-                    const { error } = await supabase
-                        .from('orders')
-                        .update({ status: 'pending' })
-                        .eq('order_ref', orderRef)
-                        .eq('status', 'pending_payment');
-
-                    if (error) {
-                        console.error('DB update error:', error);
-                    } else {
-                        console.log(`Order ${orderRef} marked as paid`);
-
-                        // Hent ordredata og send bekreftelsesmail
-                        const { data: order } = await supabase
-                            .from('orders')
-                            .select('*')
-                            .eq('order_ref', orderRef)
-                            .single();
-
-                        if (order) {
-                            await sendConfirmationEmail(order);
-                        }
-                    }
-                }
-                break;
-            }
-
-            case 'checkout.session.expired': {
-                const session = event.data.object as Stripe.Checkout.Session;
-                const orderRef = session.metadata?.order_ref;
-
-                if (orderRef) {
-                    await supabase
-                        .from('orders')
-                        .update({ status: 'cancelled' })
-                        .eq('order_ref', orderRef)
-                        .eq('status', 'pending_payment');
-
-                    console.log(`Order ${orderRef} expired — cancelled`);
-                }
-                break;
-            }
-
-            default:
-                console.log(`Unhandled event type: ${event.type}`);
-        }
-
-        return new Response(JSON.stringify({ received: true }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-        });
-
+      event = await stripe.webhooks.constructEventAsync(body, signature, STRIPE_WEBHOOK_SECRET);
     } catch (err) {
-        console.error('Webhook error:', err);
-        return new Response('Internal error', { status: 500 });
+      console.error('Webhook signature verification failed:', err);
+      return new Response(`Webhook Error: ${err.message}`, { status: 400 });
     }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderRef = session.metadata?.order_ref;
+
+        if (orderRef) {
+          // Oppdater ordrestatus til pending (betalt)
+          const { error } = await supabase
+            .from('orders')
+            .update({ status: 'pending' })
+            .eq('order_ref', orderRef)
+            .eq('status', 'pending_payment');
+
+          if (error) {
+            console.error('DB update error:', error);
+          } else {
+            console.log(`Order ${orderRef} marked as paid`);
+
+            // Hent ordredata og send bekreftelsesmail
+            const { data: order } = await supabase
+              .from('orders')
+              .select('*')
+              .eq('order_ref', orderRef)
+              .single();
+
+            if (order) {
+              await sendConfirmationEmail(order);
+            }
+          }
+        }
+        break;
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orderRef = session.metadata?.order_ref;
+
+        if (orderRef) {
+          await supabase
+            .from('orders')
+            .update({ status: 'cancelled' })
+            .eq('order_ref', orderRef)
+            .eq('status', 'pending_payment');
+
+          console.log(`Order ${orderRef} expired — cancelled`);
+        }
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+    }
+
+    return new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  } catch (err) {
+    console.error('Webhook error:', err);
+    return new Response('Internal error', { status: 500 });
+  }
 });

@@ -1,8 +1,9 @@
 /**
  * AdminLogin — Innloggingsside for admin-panelet.
  * Bruker Supabase Auth (e-post + passord).
+ * Inkluderer brute-force-beskyttelse (5 forsøk → 5 min lockout).
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Cake, Eye, EyeOff, Mail } from 'lucide-react';
@@ -11,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { useAdmin } from '@/hooks/useAdmin';
 
 const ADMIN = import.meta.env.VITE_ADMIN_PATH || 'admin';
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_SECONDS = 5 * 60; // 5 minutter
 
 export default function AdminLogin() {
     const [email, setEmail] = useState('');
@@ -18,6 +21,10 @@ export default function AdminLogin() {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [attempts, setAttempts] = useState(0);
+    const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+    const [lockoutRemaining, setLockoutRemaining] = useState(0);
+    const lockoutTimer = useRef<ReturnType<typeof setInterval>>();
     const { login, isAuthenticated, loading } = useAdmin();
     const navigate = useNavigate();
 
@@ -28,6 +35,23 @@ export default function AdminLogin() {
         }
     }, [isAuthenticated, navigate]);
 
+    // Lockout nedtelling
+    useEffect(() => {
+        if (!lockoutUntil) return;
+        const tick = () => {
+            const remaining = Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000));
+            setLockoutRemaining(remaining);
+            if (remaining <= 0) {
+                setLockoutUntil(null);
+                setAttempts(0);
+                clearInterval(lockoutTimer.current);
+            }
+        };
+        tick();
+        lockoutTimer.current = setInterval(tick, 1000);
+        return () => clearInterval(lockoutTimer.current);
+    }, [lockoutUntil]);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
@@ -36,19 +60,30 @@ export default function AdminLogin() {
         );
     }
 
+    const isLockedOut = lockoutUntil !== null && Date.now() < lockoutUntil;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLockedOut) return;
         setError('');
         setSubmitting(true);
 
         const result = await login(email, password);
 
         if (!result.success) {
-            setError(
-                result.error === 'Invalid login credentials'
-                    ? 'Feil e-post eller passord. Prøv igjen.'
-                    : result.error || 'Innlogging feilet.'
-            );
+            const newAttempts = attempts + 1;
+            setAttempts(newAttempts);
+
+            if (newAttempts >= MAX_ATTEMPTS) {
+                setLockoutUntil(Date.now() + LOCKOUT_SECONDS * 1000);
+                setError(`For mange forsøk. Prøv igjen om ${Math.ceil(LOCKOUT_SECONDS / 60)} minutter.`);
+            } else {
+                setError(
+                    result.error === 'Invalid login credentials'
+                        ? `Feil e-post eller passord. ${MAX_ATTEMPTS - newAttempts} forsøk gjenstår.`
+                        : result.error || 'Innlogging feilet.'
+                );
+            }
             setPassword('');
         }
         // Redirect happens via useEffect when isAuthenticated changes
@@ -140,10 +175,12 @@ export default function AdminLogin() {
 
                         <Button
                             type="submit"
-                            disabled={submitting}
+                            disabled={submitting || isLockedOut}
                             className="w-full h-12 rounded-xl text-base font-semibold shadow-soft hover:shadow-card transition-all duration-300"
                         >
-                            {submitting ? 'Logger inn…' : 'Logg inn'}
+                            {isLockedOut
+                                ? `Låst (${Math.floor(lockoutRemaining / 60)}:${String(lockoutRemaining % 60).padStart(2, '0')})`
+                                : submitting ? 'Logger inn…' : 'Logg inn'}
                         </Button>
                     </form>
                 </div>

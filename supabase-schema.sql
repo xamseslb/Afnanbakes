@@ -26,44 +26,12 @@ CREATE TABLE orders (
 -- 2. Enable Row Level Security
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
--- 3. Allow anyone to INSERT orders (public ordering form)
-CREATE POLICY "Anyone can create orders"
-  ON orders
-  FOR INSERT
-  TO anon
-  WITH CHECK (true);
+-- ══════════════════════════════════════════════════════════════════════════════
+-- VIKTIG: RLS-policyene er FLYTTET til supabase/rls_policies.sql
+-- IKKE kjør de gamle policyene nedenfor — de er USIKRE!
+-- Kjør supabase/rls_policies.sql i stedet.
+-- ══════════════════════════════════════════════════════════════════════════════
 
--- 4. Allow anyone to SELECT orders (needed for admin panel + cancel page using anon key)
-CREATE POLICY "Anyone can read orders"
-  ON orders
-  FOR SELECT
-  TO anon, authenticated
-  USING (true);
-
--- 5. Allow anyone to UPDATE orders (needed for admin status updates + cancellation)
-CREATE POLICY "Anyone can update orders"
-  ON orders
-  FOR UPDATE
-  TO anon, authenticated
-  USING (true)
-  WITH CHECK (true);
-
--- 6. Create storage bucket for order images (run separately if needed)
+-- 3. Create storage bucket for order images (run separately if needed)
 -- INSERT INTO storage.buckets (id, name, public) VALUES ('orders', 'orders', true);
-
--- ============================================================
--- MIGRATION: Run this on an EXISTING table to add new columns
--- ============================================================
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS package_name TEXT DEFAULT '';
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS package_price NUMERIC DEFAULT NULL;
--- ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_custom_design BOOLEAN DEFAULT false;
--- ALTER TABLE orders ALTER COLUMN quantity DROP NOT NULL;
--- ALTER TABLE orders ALTER COLUMN quantity SET DEFAULT '';
--- ALTER TABLE orders ALTER COLUMN product_type DROP NOT NULL;
--- ALTER TABLE orders ALTER COLUMN product_type SET DEFAULT '';
---
--- -- Add UPDATE policy (if it doesn't exist):
--- CREATE POLICY "Anyone can update orders"
---   ON orders FOR UPDATE TO anon, authenticated
---   USING (true) WITH CHECK (true);
 

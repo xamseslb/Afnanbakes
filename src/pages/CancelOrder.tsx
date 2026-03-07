@@ -25,6 +25,9 @@ export default function CancelOrder() {
         setLoading(true);
         setErrorMsg('');
 
+        // Generisk feilmelding for å hindre informasjonslekkasje
+        const genericError = 'Fant ingen bestilling med denne kombinasjonen av referanse og e-post. Sjekk at du har skrevet riktig.';
+
         const { data, error } = await supabase
             .from('orders')
             .select('id, customer_name, customer_email, package_name, product_type, occasion, status')
@@ -32,15 +35,14 @@ export default function CancelOrder() {
             .single();
 
         if (error || !data) {
-            console.error('Kanselleringsfeil:', error?.message, error?.code, error?.details);
-            setErrorMsg('Fant ingen bestilling med denne referansen. Sjekk at du har skrevet riktig.');
+            setErrorMsg(genericError);
             setLoading(false);
             return;
         }
 
-        // Check email matches
+        // Check email matches — bruk samme feilmelding som «ikke funnet»
         if (data.customer_email?.toLowerCase() !== email.trim().toLowerCase()) {
-            setErrorMsg('E-postadressen samsvarer ikke med bestillingen. Bruk e-posten du oppga ved bestilling.');
+            setErrorMsg(genericError);
             setLoading(false);
             return;
         }
