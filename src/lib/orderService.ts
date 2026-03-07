@@ -61,7 +61,8 @@ const MAX_IMAGE_COUNT = 5;
  * Returnerer offentlige URL-er for de opplastede bildene.
  */
 export async function uploadImages(images: File[]): Promise<string[]> {
-    if (images.length === 0) return [];
+    console.log('[DEBUG uploadImages] Called with', images.length, 'images');
+    if (images.length === 0) { console.log('[DEBUG uploadImages] No images, returning []'); return []; }
 
     // Begrens antall bilder
     const filesToUpload = images.slice(0, MAX_IMAGE_COUNT);
@@ -100,8 +101,10 @@ export async function uploadImages(images: File[]): Promise<string[]> {
             .getPublicUrl(filePath);
 
         urls.push(urlData.publicUrl);
+        console.log('[DEBUG uploadImages] Uploaded:', urlData.publicUrl);
     }
 
+    console.log('[DEBUG uploadImages] Returning', urls.length, 'urls:', urls);
     return urls;
 }
 
@@ -115,7 +118,9 @@ export async function createCheckoutSession(
 ): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
     try {
         // 1. Last opp bilder først
+        console.log('[DEBUG createCheckoutSession] orderData.images:', orderData.images?.length, 'files');
         const imageUrls = await uploadImages(orderData.images);
+        console.log('[DEBUG createCheckoutSession] imageUrls after upload:', imageUrls);
 
         // 2. Kall Edge Function
         const { data, error } = await supabase.functions.invoke('create-checkout', {
