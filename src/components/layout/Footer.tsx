@@ -3,6 +3,7 @@
  */
 import { Link } from 'react-router-dom';
 import { MapPin, Mail } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Footer() {
   return (
@@ -12,9 +13,7 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <Link to="/" className="inline-block">
-              <span className="font-serif text-2xl font-bold tracking-tight logo-text">
-                AfnanBakes
-              </span>
+              <Logo size="md" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
               Håndlagde kaker og bakverk med kjærlighet i Oslo. Spesialisert på

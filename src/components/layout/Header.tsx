@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, ShoppingBag } from 'lucide-react';
+import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/useCart';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,9 +30,7 @@ export function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-serif text-2xl font-bold tracking-tight logo-text">
-              AfnanBakes
-            </span>
+            <Logo size="md" />
           </Link>
 
           {/* Desktop Nav Links */}
@@ -100,9 +99,7 @@ export function Header() {
             >
               {/* Panel header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
-                <span className="font-serif text-lg font-bold logo-text">
-                  AfnanBakes
-                </span>
+                <Logo size="sm" />
                 <Button
                   variant="ghost"
                   size="icon"
