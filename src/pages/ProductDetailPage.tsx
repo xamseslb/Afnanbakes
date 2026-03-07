@@ -275,7 +275,7 @@ export default function ProductDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
                     {/* ── Venstre: Produktbilde ── */}
-                    <div className="sticky top-4 self-start">
+                    <div className="sticky top-24 self-start">
                         <div className="aspect-square w-full rounded-2xl overflow-hidden bg-muted flex items-center justify-center shadow-soft">
                             {product.imageUrl ? (
                                 <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
