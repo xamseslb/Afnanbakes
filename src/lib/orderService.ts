@@ -122,45 +122,71 @@ export async function createCheckoutSession(
         const imageUrls = await uploadImages(orderData.images);
         console.log('[DEBUG createCheckoutSession] imageUrls after upload:', imageUrls);
 
-        // 2. Kall Edge Function
-        const { data, error } = await supabase.functions.invoke('create-checkout', {
-            body: {
-                customerName: orderData.customerName,
-                customerEmail: orderData.customerEmail,
-                customerPhone: orderData.customerPhone,
-                occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
-                productType: orderData.productType ? productLabels[orderData.productType] : '',
-                packageName: orderData.selectedSize
-                    ? `${orderData.cakeName || 'Kake'} (${orderData.selectedSize.persons})`
-                    : orderData.selectedPackage?.name || orderData.cakeName || 'Bestilling',
-                packagePrice: orderData.selectedSize
-                    ? orderData.selectedSize.price + (orderData.withPhoto ? PHOTO_ADDON_PRICE : 0)
-                    : orderData.selectedPackage?.price || orderData.directPrice || 0,
-                quantity: orderData.quantity || '1',
-                description: orderData.description,
-                ideas: orderData.ideas,
-                cakeName: orderData.cakeName,
-                cakeText: orderData.cakeText,
-                deliveryDate: orderData.deliveryDate,
-                imageUrls,
-                isCustomDesign: orderData.isCustomDesign,
-                // Felter for server-side prisberegning
-                productId: orderData.productId,
-                sizeId: orderData.selectedSize?.id || '',
-                size: orderData.selectedSize?.label || '',
-                sizePersons: orderData.selectedSize?.persons || '',
-                flavor: orderData.selectedFlavor?.label || '',
-                color: orderData.selectedColor?.label || '',
-                withPhoto: orderData.withPhoto,
+        // 2. Kall Edge Function via direct fetch (mer pålitelig enn supabase.functions.invoke)
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+        const payload = {
+            customerName: orderData.customerName,
+            customerEmail: orderData.customerEmail,
+            customerPhone: orderData.customerPhone,
+            occasion: orderData.occasion ? occasionLabels[orderData.occasion] : '',
+            productType: orderData.productType ? productLabels[orderData.productType] : '',
+            packageName: orderData.selectedSize
+                ? `${orderData.cakeName || 'Kake'} (${orderData.selectedSize.persons})`
+                : orderData.selectedPackage?.name || orderData.cakeName || 'Bestilling',
+            packagePrice: orderData.selectedSize
+                ? orderData.selectedSize.price + (orderData.withPhoto ? PHOTO_ADDON_PRICE : 0)
+                : orderData.selectedPackage?.price || orderData.directPrice || 0,
+            quantity: orderData.quantity || '1',
+            description: orderData.description,
+            ideas: orderData.ideas,
+            cakeName: orderData.cakeName,
+            cakeText: orderData.cakeText,
+            deliveryDate: orderData.deliveryDate,
+            imageUrls,
+            isCustomDesign: orderData.isCustomDesign,
+            // Felter for server-side prisberegning
+            productId: orderData.productId,
+            sizeId: orderData.selectedSize?.id || '',
+            size: orderData.selectedSize?.label || '',
+            sizePersons: orderData.selectedSize?.persons || '',
+            flavor: orderData.selectedFlavor?.label || '',
+            color: orderData.selectedColor?.label || '',
+            withPhoto: orderData.withPhoto,
+        };
+
+        console.log('[DEBUG createCheckoutSession] Sending payload with imageUrls:', payload.imageUrls);
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                apikey: anonKey,
+                Authorization: `Bearer ${anonKey}`,
             },
+            body: JSON.stringify(payload),
         });
 
-        if (error) {
-            console.error('Checkout session feilet:', error.message);
-            return { success: false, error: error.message };
+        const responseText = await response.text();
+        let data: Record<string, unknown> = {};
+        try { data = JSON.parse(responseText); } catch { /* ignorer parse-feil */ }
+
+        if (!response.ok) {
+            const errMsg =
+                (data.error as string) ||
+                (data.message as string) ||
+                `HTTP ${response.status}: ${responseText.slice(0, 200)}`;
+            console.error('Checkout session feilet:', response.status, data);
+            return { success: false, error: errMsg };
         }
 
-        return { success: true, url: data.url, orderRef: data.orderRef };
+        if (!data.url) {
+            console.error('Ingen URL i svar:', data);
+            return { success: false, error: String(data.error || 'Ingen betalings-URL mottatt') };
+        }
+
+        return { success: true, url: data.url as string, orderRef: data.orderRef as string };
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Ukjent feil';
         console.error('Checkout-feil:', message);
