@@ -117,10 +117,17 @@ export async function createCheckoutSession(
     orderData: OrderData
 ): Promise<{ success: boolean; url?: string; orderRef?: string; error?: string }> {
     try {
-        // 1. Last opp bilder først
-        console.log('[DEBUG createCheckoutSession] orderData.images:', orderData.images?.length, 'files');
-        const imageUrls = await uploadImages(orderData.images);
-        console.log('[DEBUG createCheckoutSession] imageUrls after upload:', imageUrls);
+        // 1. Last opp inspirasjonsbilder og spiselig bilde separat
+        console.log('[DEBUG] withPhoto:', orderData.withPhoto, 'images:', orderData.images?.length);
+        const edibleFile = orderData.withPhoto ? orderData.images?.[0] ?? null : null;
+        const inspirationFiles = orderData.withPhoto ? (orderData.images ?? []).slice(1) : (orderData.images ?? []);
+
+        const [edibleUrls, inspirationUrls] = await Promise.all([
+            edibleFile ? uploadImages([edibleFile]) : Promise.resolve([]),
+            uploadImages(inspirationFiles),
+        ]);
+        const edibleImageUrl = edibleUrls[0] ?? null;
+        console.log('[DEBUG] edibleImageUrl:', edibleImageUrl, 'inspirationUrls:', inspirationUrls);
 
         // 2. Kall Edge Function via direct fetch (mer pålitelig enn supabase.functions.invoke)
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
@@ -144,9 +151,9 @@ export async function createCheckoutSession(
             cakeName: orderData.cakeName,
             cakeText: orderData.cakeText,
             deliveryDate: orderData.deliveryDate,
-            imageUrls,
+            imageUrls: inspirationUrls,
+            edibleImageUrl: edibleImageUrl ?? undefined,
             isCustomDesign: orderData.isCustomDesign,
-            // Felter for server-side prisberegning
             productId: orderData.productId,
             sizeId: orderData.selectedSize?.id || '',
             size: orderData.selectedSize?.label || '',
@@ -155,8 +162,6 @@ export async function createCheckoutSession(
             color: orderData.selectedColor?.label || '',
             withPhoto: orderData.withPhoto,
         };
-
-        console.log('[DEBUG createCheckoutSession] Sending payload with imageUrls:', payload.imageUrls);
 
         const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
             method: 'POST',

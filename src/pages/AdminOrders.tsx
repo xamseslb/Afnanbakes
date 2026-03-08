@@ -263,8 +263,27 @@ export default function AdminOrders() {
                             </Section>
                         )}
 
-                        {/* Referansebilder — alltid synlig */}
-                        <Section title={`Referansebilder (${(selectedOrder.image_urls || []).length})`} icon={ImageIcon}>
+                        {/* Spiselig bilde (betalt tillegg) */}
+                        <Section title="🎂 Spiselig bilde (+200 kr)" icon={ImageIcon}>
+                            {selectedOrder.edible_image_url ? (
+                                <a
+                                    href={selectedOrder.edible_image_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block w-full max-w-[200px] aspect-square rounded-xl overflow-hidden bg-muted hover:opacity-80 transition-opacity ring-2 ring-primary/30"
+                                >
+                                    <img src={selectedOrder.edible_image_url} alt="Spiselig bilde" className="w-full h-full object-cover" />
+                                </a>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-6 text-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
+                                    <ImageIcon className="w-8 h-8 text-muted-foreground/40 mb-2" />
+                                    <p className="text-sm text-muted-foreground">Ingen spiselig bilde lastet opp</p>
+                                </div>
+                            )}
+                        </Section>
+
+                        {/* Inspirasjonsbilder (gratis) */}
+                        <Section title={`🖼️ Inspirasjonsbilder (${(selectedOrder.image_urls || []).length})`} icon={ImageIcon}>
                             {selectedOrder.image_urls && selectedOrder.image_urls.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {selectedOrder.image_urls.map((url, i) => (
@@ -275,17 +294,18 @@ export default function AdminOrders() {
                                             rel="noopener noreferrer"
                                             className="aspect-square rounded-xl overflow-hidden bg-muted hover:opacity-80 transition-opacity ring-1 ring-border/30"
                                         >
-                                            <img src={url} alt={`Referansebilde ${i + 1}`} className="w-full h-full object-cover" />
+                                            <img src={url} alt={`Inspirasjon ${i + 1}`} className="w-full h-full object-cover" />
                                         </a>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center py-8 text-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
-                                    <ImageIcon className="w-10 h-10 text-muted-foreground/40 mb-2" />
-                                    <p className="text-sm text-muted-foreground">Ingen bilder lastet opp av kunden</p>
+                                <div className="flex flex-col items-center justify-center py-6 text-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
+                                    <ImageIcon className="w-8 h-8 text-muted-foreground/40 mb-2" />
+                                    <p className="text-sm text-muted-foreground">Ingen inspirasjonsbilder lastet opp</p>
                                 </div>
                             )}
                         </Section>
+
                     </div>
 
                     {/* Høyre kolonne — Kunde + Status */}

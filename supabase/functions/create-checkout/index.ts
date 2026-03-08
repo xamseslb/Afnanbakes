@@ -81,7 +81,8 @@ interface CheckoutPayload {
     cakeName: string;
     cakeText: string;
     deliveryDate: string;
-    imageUrls: string[];
+    imageUrls: string[];        // Inspirasjonsbilder
+    edibleImageUrl?: string;   // Spiselig bilde (betalt tillegg)
     isCustomDesign: boolean;
 }
 
@@ -229,7 +230,7 @@ serve(async (req: Request) => {
         const orderRef = generateOrderRef();
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-        console.log('[DEBUG create-checkout] Inserting order with image_urls:', JSON.stringify(data.imageUrls), 'count:', (data.imageUrls || []).length);
+        console.log('[DEBUG create-checkout] Inserting order. edibleImageUrl:', data.edibleImageUrl, 'imageUrls count:', (data.imageUrls || []).length);
         const { error: dbError } = await supabase.from('orders').insert({
             order_ref: orderRef,
             customer_name: data.customerName,
@@ -246,6 +247,7 @@ serve(async (req: Request) => {
             cake_text: data.cakeText,
             delivery_date: data.deliveryDate || null,
             image_urls: data.imageUrls || [],
+            edible_image_url: data.edibleImageUrl || null,
             is_custom_design: data.isCustomDesign || false,
             status: 'pending_payment',
         });
