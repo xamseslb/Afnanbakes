@@ -28,8 +28,9 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CustomOrderPage from './pages/CustomOrderPage';
 import ComingSoon from './pages/ComingSoon';
 
-/** Styrt av VITE_COMING_SOON i Cloudflare env-variabler. Lokalt er det alltid false. */
-const COMING_SOON = import.meta.env.VITE_COMING_SOON === 'true';
+/** Runtime-sjekk: localhost ser full side, afnanbakes.com ser Coming Soon */
+const COMING_SOON = typeof window !== 'undefined'
+  && window.location.hostname === 'afnanbakes.com';
 
 /** React Query klient for datahenting */
 const queryClient = new QueryClient();
