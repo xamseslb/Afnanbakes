@@ -153,6 +153,11 @@ export default function ProductDetailPage() {
         if (!isValid || !product) return;
         setIsSubmitting(true);
 
+        const allImages = withPhoto && photoImage ? [photoImage, ...images] : images;
+        // DEBUG: show the user what's happening
+        console.log('[DEBUG handleOrder] withPhoto:', withPhoto, 'photoImage:', !!photoImage, 'images.length:', images.length, 'allImages.length:', allImages.length);
+        alert(`DEBUG: Bilder som sendes:\n- Spiselig bilde: ${withPhoto && photoImage ? 'JA' : 'NEI'}\n- Inspirasjonsbilder: ${images.length}\n- Totalt: ${allImages.length} filer\n\nKlikk OK for å fortsette.`);
+
         const orderData = {
             occasion: null,
             productType: null,
@@ -176,7 +181,7 @@ export default function ProductDetailPage() {
             cakeText,
             quantity: String(quantity),
             deliveryDate,
-            images: withPhoto && photoImage ? [photoImage, ...images] : images,
+            images: allImages,
             directPrice: !isCake
                 ? product.price * quantity + (withPhoto ? PHOTO_ADDON_PRICE : 0)
                 : undefined,
