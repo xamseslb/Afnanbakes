@@ -2,7 +2,7 @@
  * ComingSoon — Vises for alle besøkende når VITE_COMING_SOON=true.
  * Admin-ruter er alltid tilgjengelige uavhengig av denne siden.
  */
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 const LAUNCH_DATE = new Date('2026-04-27T10:00:00');
 
@@ -40,16 +40,6 @@ function CountBox({ value, label }: { value: number; label: string }) {
 
 export default function ComingSoon() {
     const { days, hours, minutes, seconds } = useCountdown(LAUNCH_DATE);
-    const [email, setEmail] = useState('');
-    const [submitted, setSubmitted] = useState(false);
-
-    function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        if (email.trim()) {
-            setSubmitted(true);
-            setEmail('');
-        }
-    }
 
     return (
         <div
@@ -104,36 +94,15 @@ export default function ComingSoon() {
                 <CountBox value={seconds} label="Sek" />
             </div>
 
-            {/* E-post-påmelding */}
-            <div className="w-full max-w-sm">
-                {submitted ? (
-                    <div className="rounded-2xl bg-white/10 border border-white/20 px-6 py-4 text-white/90 text-sm font-medium backdrop-blur-sm">
-                        ✅ Takk! Vi gir deg beskjed når vi åpner. 🎂
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-                        <input
-                            type="email"
-                            required
-                            placeholder="Din e-postadresse"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 text-sm outline-none focus:border-pink-400/60 focus:bg-white/15 transition-all backdrop-blur-sm"
-                        />
-                        <button
-                            type="submit"
-                            className="px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95 whitespace-nowrap"
-                            style={{
-                                background: 'linear-gradient(135deg, #d585a6, #a855b5)',
-                                boxShadow: '0 4px 20px rgba(216,131,166,0.35)',
-                            }}
-                        >
-                            Gi meg beskjed
-                        </button>
-                    </form>
-                )}
-                <p className="text-white/30 text-xs mt-3">
-                    Vi sender deg en e-post når AfnanBakes åpner.
+            {/* Dekorativt logo-element */}
+            <div className="w-full max-w-xs flex flex-col items-center gap-4">
+                <div className="flex items-center gap-3 w-full">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="text-3xl">🎂</span>
+                    <div className="flex-1 h-px bg-white/10" />
+                </div>
+                <p className="text-white/40 text-xs uppercase tracking-[0.25em] font-light">
+                    Håndlagde kaker siden 2024
                 </p>
             </div>
 
