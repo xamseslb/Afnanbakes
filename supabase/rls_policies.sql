@@ -77,10 +77,14 @@ CREATE POLICY "Autentisert bruker kan administrere blokkerte datoer"
   USING (true)
   WITH CHECK (true);
 
--- ── 3. DELIVERY_DATE kolonne (påkrevd for korrekt håndtering) ─────────────────
+-- ── 3. MANGLENDE KOLONNER (påkrevd for korrekt håndtering) ───────────────────
 
 -- Legg til delivery_date kolonne hvis den ikke finnes
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_date DATE DEFAULT NULL;
+
+-- Legg til edible_image_url kolonne hvis den ikke finnes
+-- (brukes av Edge Function create-checkout for spiselig bildeopplasting)
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS edible_image_url TEXT DEFAULT NULL;
 
 -- ══════════════════════════════════════════════════════════════════════════════
 -- VIKTIG: Denne SQL-filen ERSTATTER supabase-schema.sql sine policyer.
