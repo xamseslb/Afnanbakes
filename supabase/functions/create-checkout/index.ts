@@ -166,7 +166,7 @@ serve(async (req: Request) => {
                 delivery_date: item.deliveryDate || null,
                 image_urls: item.imageUrls || [],
                 edible_image_url: item.edibleImageUrl || null,
-                status: 'pending_payment',
+                status: 'pending',
                 is_custom_design: false,
                 occasion: '',
                 product_type: '',
@@ -252,7 +252,7 @@ serve(async (req: Request) => {
             image_urls: data.imageUrls || [],
             edible_image_url: data.edibleImageUrl || null,
             is_custom_design: data.isCustomDesign || false,
-            status: 'pending_payment',
+            status: 'pending',
         });
 
         if (dbError) {
