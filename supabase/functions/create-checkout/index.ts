@@ -155,8 +155,9 @@ serve(async (req: Request) => {
             const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
             // Lagre én ordre per linjeelement i DB
-            const records = validatedItems.map((item) => ({
-                order_ref: orderRef,
+            // Merk: order_ref er UNIQUE i databasen, så hver rad får sitt eget suffiks
+            const records = validatedItems.map((item, idx) => ({
+                order_ref: `${orderRef}${validatedItems.length > 1 ? `-${idx + 1}` : ''}`,
                 customer_name: data.customerName,
                 customer_email: data.customerEmail,
                 customer_phone: data.customerPhone,
