@@ -124,6 +124,8 @@ serve(async (req: Request) => {
 
     try {
         const body = await req.json();
+        console.log('[DEBUG create-checkout] Received body keys:', Object.keys(body));
+        console.log('[DEBUG create-checkout] imageUrls:', JSON.stringify(body.imageUrls));
 
         // ── Flerbestilling ──────────────────────────────────────────────────
         if (body.multiItem === true) {
@@ -227,6 +229,7 @@ serve(async (req: Request) => {
         const orderRef = generateOrderRef();
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        console.log('[DEBUG create-checkout] Inserting order with image_urls:', JSON.stringify(data.imageUrls), 'count:', (data.imageUrls || []).length);
         const { error: dbError } = await supabase.from('orders').insert({
             order_ref: orderRef,
             customer_name: data.customerName,
