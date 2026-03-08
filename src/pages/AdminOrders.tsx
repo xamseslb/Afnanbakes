@@ -263,9 +263,9 @@ export default function AdminOrders() {
                             </Section>
                         )}
 
-                        {/* Referansebilder */}
-                        {selectedOrder.image_urls && selectedOrder.image_urls.length > 0 && (
-                            <Section title={`Referansebilder (${selectedOrder.image_urls.length})`} icon={ImageIcon}>
+                        {/* Referansebilder — alltid synlig */}
+                        <Section title={`Referansebilder (${(selectedOrder.image_urls || []).length})`} icon={ImageIcon}>
+                            {selectedOrder.image_urls && selectedOrder.image_urls.length > 0 ? (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     {selectedOrder.image_urls.map((url, i) => (
                                         <a
@@ -279,8 +279,13 @@ export default function AdminOrders() {
                                         </a>
                                     ))}
                                 </div>
-                            </Section>
-                        )}
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-8 text-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
+                                    <ImageIcon className="w-10 h-10 text-muted-foreground/40 mb-2" />
+                                    <p className="text-sm text-muted-foreground">Ingen bilder lastet opp av kunden</p>
+                                </div>
+                            )}
+                        </Section>
                     </div>
 
                     {/* Høyre kolonne — Kunde + Status */}

@@ -154,9 +154,7 @@ export default function ProductDetailPage() {
         setIsSubmitting(true);
 
         const allImages = withPhoto && photoImage ? [photoImage, ...images] : images;
-        // DEBUG: show the user what's happening
-        console.log('[DEBUG handleOrder] withPhoto:', withPhoto, 'photoImage:', !!photoImage, 'images.length:', images.length, 'allImages.length:', allImages.length);
-        alert(`DEBUG: Bilder som sendes:\n- Spiselig bilde: ${withPhoto && photoImage ? 'JA' : 'NEI'}\n- Inspirasjonsbilder: ${images.length}\n- Totalt: ${allImages.length} filer\n\nKlikk OK for å fortsette.`);
+        console.log('[DEBUG handleOrder] images.length:', images.length, 'allImages.length:', allImages.length);
 
         const orderData = {
             occasion: null,
