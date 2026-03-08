@@ -28,8 +28,8 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CustomOrderPage from './pages/CustomOrderPage';
 import ComingSoon from './pages/ComingSoon';
 
-/** Midlertidig hardkodet til true for test — bytt tilbake til env-sjekk etter lansering */
-const COMING_SOON = true;
+/** Styrt av VITE_COMING_SOON i Cloudflare env-variabler. Lokalt er det alltid false. */
+const COMING_SOON = import.meta.env.VITE_COMING_SOON === 'true';
 
 /** React Query klient for datahenting */
 const queryClient = new QueryClient();
