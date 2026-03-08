@@ -31,6 +31,26 @@ export interface OrderRow {
 /** Ordrens mulige statuser */
 export type OrderStatus = OrderRow['status'];
 
+/**
+ * En GRUPPERT ordre — alle rader med samme basis-referanse (AB-XXXXXX)
+ * samles som én logisk bestilling med flere produkter.
+ */
+export interface GroupedOrder {
+    /** Basis-referanse uten suffiks, f.eks. "AB-AJ9UDP" */
+    baseRef: string;
+    /** Alle DB-rader som tilhører denne bestillingen */
+    items: OrderRow[];
+    customer_name: string;
+    customer_email: string;
+    customer_phone: string;
+    created_at: string;
+    status: OrderStatus;
+    /** Alle unike leveringsdatoer */
+    delivery_dates: string[];
+    /** Totalsum av alle produkter */
+    total_price: number;
+}
+
 /** Norske navn for hver ordrestatus */
 export const statusLabels: Record<OrderStatus, string> = {
     pending_payment: 'Venter betaling',
@@ -65,7 +85,47 @@ export async function fetchOrders(): Promise<OrderRow[]> {
     return (data as OrderRow[]) || [];
 }
 
-/** Oppdaterer statusen til en bestilling */
+/**
+ * Grupperer flate DB-rader til logiske bestillinger basert på basis-referansen.
+ * AB-AJ9UDP-1, AB-AJ9UDP-2, AB-AJ9UDP-3 → én GroupedOrder med 3 produkter.
+ * Enkelt-bestillinger (AB-A5ZUBR uten suffiks) beholdes som de er.
+ */
+export function groupOrders(rows: OrderRow[]): GroupedOrder[] {
+    const map = new Map<string, OrderRow[]>();
+
+    for (const row of rows) {
+        // Fjern -N suffiks: "AB-AJ9UDP-1" → "AB-AJ9UDP", "AB-A5ZUBR" → "AB-A5ZUBR"
+        const baseRef = row.order_ref.replace(/-\d+$/, '');
+        const existing = map.get(baseRef) || [];
+        existing.push(row);
+        map.set(baseRef, existing);
+    }
+
+    const groups: GroupedOrder[] = [];
+    map.forEach((items, baseRef) => {
+        items.sort((a, b) => a.order_ref.localeCompare(b.order_ref));
+        const first = items[0];
+        const uniqueDates = [...new Set(items.map((i) => i.delivery_date).filter(Boolean))];
+
+        groups.push({
+            baseRef,
+            items,
+            customer_name: first.customer_name,
+            customer_email: first.customer_email,
+            customer_phone: first.customer_phone,
+            created_at: first.created_at,
+            status: first.status,
+            delivery_dates: uniqueDates,
+            total_price: items.reduce((sum, i) => sum + (i.package_price || 0), 0),
+        });
+    });
+
+    return groups.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+}
+
+/** Oppdaterer statusen til én ordrepost */
 export async function updateOrderStatus(
     orderId: string,
     newStatus: OrderStatus
@@ -83,13 +143,32 @@ export async function updateOrderStatus(
     return true;
 }
 
-/** Beregner antall bestillinger per status (pending_payment er filtrert ut) */
+/** Oppdaterer status for ALLE rader i en gruppe (alle produkter i samme bestilling) */
+export async function updateGroupStatus(
+    baseRef: string,
+    newStatus: OrderStatus
+): Promise<boolean> {
+    const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .like('order_ref', `${baseRef}%`);
+
+    if (error) {
+        console.error('Gruppestatusoppdatering feilet:', error.message);
+        return false;
+    }
+
+    return true;
+}
+
+/** Beregner statistikk basert på grupperte ordrer (ikke enkelt-rader) */
 export function getOrderStats(orders: OrderRow[]) {
+    const groups = groupOrders(orders);
     return {
-        pending: orders.filter((o) => o.status === 'pending').length,
-        confirmed: orders.filter((o) => o.status === 'confirmed').length,
-        completed: orders.filter((o) => o.status === 'completed').length,
-        cancelled: orders.filter((o) => o.status === 'cancelled').length,
-        total: orders.filter((o) => o.status !== 'cancelled').length,
+        pending: groups.filter((g) => g.status === 'pending').length,
+        confirmed: groups.filter((g) => g.status === 'confirmed').length,
+        completed: groups.filter((g) => g.status === 'completed').length,
+        cancelled: groups.filter((g) => g.status === 'cancelled').length,
+        total: groups.filter((g) => g.status !== 'cancelled').length,
     };
 }

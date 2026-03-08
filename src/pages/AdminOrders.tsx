@@ -1,5 +1,6 @@
 /**
- * AdminOrders — Oversiktlig ordreliste med søk, filter og fullskjerm detaljvisning.
+ * AdminOrders — Ordreliste med gruppering: alle produkter fra samme bestilling
+ * vises som ett kort med produktliste, ikke som separate rader.
  */
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
@@ -23,16 +24,18 @@ import {
     ChevronRight,
     Cake,
     MessageSquare,
-    Hash,
     CreditCard,
     ArrowLeft,
+    ShoppingBag,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
     fetchOrders,
-    updateOrderStatus,
+    groupOrders,
+    updateGroupStatus,
     statusLabels,
     statusColors,
+    type GroupedOrder,
     type OrderRow,
     type OrderStatus,
 } from '@/lib/adminService';
@@ -72,6 +75,246 @@ function formatRelativeDate(dateStr: string) {
     return date.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' });
 }
 
+// ─── Detaljvisning for én gruppe ──────────────────────────────────────────────
+
+function GroupDetail({
+    group,
+    onBack,
+    onStatusChange,
+    updating,
+}: {
+    group: GroupedOrder;
+    onBack: () => void;
+    onStatusChange: (g: GroupedOrder, s: OrderStatus) => void;
+    updating: boolean;
+}) {
+    const [copiedRef, setCopiedRef] = useState(false);
+    const ActiveStatusIcon = statusIcons[group.status];
+
+    function copyRef() {
+        navigator.clipboard.writeText(group.baseRef);
+        setCopiedRef(true);
+        setTimeout(() => setCopiedRef(false), 2000);
+    }
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            {/* Tilbake + status */}
+            <div className="flex items-center justify-between">
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+                >
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    Tilbake til liste
+                </button>
+                <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${statusColors[group.status]}`}>
+                    <ActiveStatusIcon className="w-3.5 h-3.5" />
+                    {statusLabels[group.status]}
+                </span>
+            </div>
+
+            {/* Ordrehode */}
+            <div className="bg-card rounded-2xl border border-border/50 shadow-soft p-6">
+                <div className="flex items-center gap-3 mb-1">
+                    <h1 className="font-serif text-2xl font-bold text-foreground">Bestilling</h1>
+                    <span className="font-mono text-lg text-primary font-bold">{group.baseRef}</span>
+                    <button
+                        onClick={copyRef}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                        title="Kopier referanse"
+                    >
+                        {copiedRef ? <CheckCheck className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                </div>
+                <p className="text-sm text-muted-foreground">Bestilt {formatDate(group.created_at)}</p>
+                {group.delivery_dates.length > 0 && (
+                    <div className="mt-2 space-y-0.5">
+                        {group.delivery_dates.map((d) => (
+                            <p key={d} className="text-sm font-medium text-primary flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                Hentes: {formatNorwegianDate(d)}
+                            </p>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Venstre: produktliste */}
+                <div className="lg:col-span-2 space-y-4">
+                    {/* Produkter i bestillingen */}
+                    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+                        <div className="px-5 py-3 bg-muted/30 border-b border-border/50 flex items-center justify-between">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                <ShoppingBag className="w-3.5 h-3.5" />
+                                {group.items.length} produkt{group.items.length !== 1 ? 'er' : ''}
+                            </p>
+                            <span className="font-bold text-primary text-sm">
+                                Totalt: {group.total_price.toLocaleString('nb-NO')} kr
+                            </span>
+                        </div>
+                        <div className="divide-y divide-border/30">
+                            {group.items.map((item) => (
+                                <div key={item.id} className="px-5 py-4">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-foreground flex items-center gap-2">
+                                                <Cake className="w-4 h-4 text-primary shrink-0" />
+                                                {item.package_name || item.cake_name || '—'}
+                                            </p>
+                                            {item.description && (
+                                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
+                                            )}
+                                            {item.cake_text && (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    <span className="font-medium">Tekst:</span> „{item.cake_text}"
+                                                </p>
+                                            )}
+                                            {item.delivery_date && (
+                                                <p className="text-xs text-primary mt-1 flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {new Date(item.delivery_date + 'T00:00:00').toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <span className="font-bold text-primary text-sm whitespace-nowrap shrink-0">
+                                            {item.package_price != null ? `${item.package_price.toLocaleString('nb-NO')} kr` : '—'}
+                                        </span>
+                                    </div>
+
+                                    {/* Bilder for dette produktet */}
+                                    {item.edible_image_url && (
+                                        <div className="mt-3">
+                                            <p className="text-xs text-muted-foreground mb-1.5">🎂 Spiselig bilde:</p>
+                                            <a href={item.edible_image_url} target="_blank" rel="noopener noreferrer"
+                                                className="block w-20 h-20 rounded-xl overflow-hidden ring-2 ring-primary/30 hover:opacity-80 transition-opacity">
+                                                <img src={item.edible_image_url} alt="Spiselig bilde" className="w-full h-full object-cover" />
+                                            </a>
+                                        </div>
+                                    )}
+                                    {item.image_urls && item.image_urls.length > 0 && (
+                                        <div className="mt-3">
+                                            <p className="text-xs text-muted-foreground mb-1.5">🖼️ Inspirasjonsbilder ({item.image_urls.length}):</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {item.image_urls.map((url, i) => (
+                                                    <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                                                        className="w-14 h-14 rounded-lg overflow-hidden ring-1 ring-border/30 hover:opacity-80 transition-opacity">
+                                                        <img src={url} alt={`Inspirasjon ${i + 1}`} className="w-full h-full object-cover" />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                        {/* Totalrad */}
+                        <div className="px-5 py-3 bg-primary/5 border-t border-border/50 flex justify-between items-center">
+                            <span className="text-sm font-semibold text-foreground">Totalbeløp</span>
+                            <span className="text-lg font-bold text-primary">{group.total_price.toLocaleString('nb-NO')} kr</span>
+                        </div>
+                    </div>
+
+                    {/* Samlede ideer/beskrivelse */}
+                    {group.items.some((i) => i.ideas) && (
+                        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+                            <div className="px-5 py-3 bg-muted/30 border-b border-border/50">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                    <MessageSquare className="w-3.5 h-3.5" /> Idéer og ønsker
+                                </p>
+                            </div>
+                            <div className="p-5 space-y-3">
+                                {group.items.filter((i) => i.ideas).map((item) => (
+                                    <p key={item.id} className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                                        {item.ideas}
+                                    </p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Høyre: kunde + status */}
+                <div className="space-y-5">
+                    {/* Kundeinformasjon */}
+                    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+                        <div className="px-5 py-3 bg-muted/30 border-b border-border/50">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Kundeinformasjon</p>
+                        </div>
+                        <div className="p-5 space-y-4">
+                            {group.customer_name && (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <User className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-foreground text-lg">{group.customer_name}</p>
+                                        <p className="text-xs text-muted-foreground">Kunde</p>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="space-y-2">
+                                {group.customer_email && (
+                                    <a href={`mailto:${group.customer_email}`}
+                                        className="flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition-colors">
+                                        <Mail className="w-5 h-5" />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium">Send e-post</p>
+                                            <p className="text-xs truncate opacity-80">{group.customer_email}</p>
+                                        </div>
+                                    </a>
+                                )}
+                                {group.customer_phone && (
+                                    <a href={`tel:${group.customer_phone}`}
+                                        className="flex items-center gap-3 px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-colors">
+                                        <Phone className="w-5 h-5" />
+                                        <div>
+                                            <p className="text-sm font-medium">Ring kunde</p>
+                                            <p className="text-xs opacity-80">{group.customer_phone}</p>
+                                        </div>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Endre status — gjelder alle produkter i bestillingen */}
+                    <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+                        <div className="px-5 py-3 bg-muted/30 border-b border-border/50">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                <Sparkles className="w-3.5 h-3.5" /> Endre status (alle produkter)
+                            </p>
+                        </div>
+                        <div className="p-5">
+                            <div className="grid grid-cols-2 gap-2">
+                                {allStatuses.map((status) => {
+                                    const Icon = statusIcons[status];
+                                    const isActive = group.status === status;
+                                    return (
+                                        <button
+                                            key={status}
+                                            onClick={() => onStatusChange(group, status)}
+                                            disabled={isActive || updating}
+                                            className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                                                ? `${statusColors[status]} ring-2 ring-offset-2 ring-current`
+                                                : 'bg-muted/30 border border-border/50 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50'
+                                                }`}
+                                        >
+                                            <Icon className="w-4 h-4" />
+                                            {statusLabels[status]}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 // ─── Hovedkomponent ───────────────────────────────────────────────────────────
 
 export default function AdminOrders() {
@@ -79,13 +322,10 @@ export default function AdminOrders() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-    const [selectedOrder, setSelectedOrder] = useState<OrderRow | null>(null);
+    const [selectedGroup, setSelectedGroup] = useState<GroupedOrder | null>(null);
     const [updating, setUpdating] = useState(false);
-    const [copiedRef, setCopiedRef] = useState(false);
 
-    useEffect(() => {
-        loadOrders();
-    }, []);
+    useEffect(() => { loadOrders(); }, []);
 
     async function loadOrders() {
         setLoading(true);
@@ -94,52 +334,51 @@ export default function AdminOrders() {
         setLoading(false);
     }
 
-    const filteredOrders = useMemo(() => {
-        return orders.filter((order) => {
-            const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const groupedOrders = useMemo(() => groupOrders(orders), [orders]);
+
+    const filteredGroups = useMemo(() => {
+        return groupedOrders.filter((group) => {
+            const matchesStatus = statusFilter === 'all' || group.status === statusFilter;
             const query = searchQuery.toLowerCase();
             const matchesSearch =
                 !query ||
-                order.order_ref?.toLowerCase().includes(query) ||
-                order.customer_name?.toLowerCase().includes(query) ||
-                order.customer_email?.toLowerCase().includes(query) ||
-                order.package_name?.toLowerCase().includes(query) ||
-                order.occasion?.toLowerCase().includes(query) ||
-                order.description?.toLowerCase().includes(query) ||
-                order.cake_text?.toLowerCase().includes(query);
+                group.baseRef.toLowerCase().includes(query) ||
+                group.customer_name?.toLowerCase().includes(query) ||
+                group.customer_email?.toLowerCase().includes(query) ||
+                group.items.some((i) =>
+                    i.package_name?.toLowerCase().includes(query) ||
+                    i.description?.toLowerCase().includes(query) ||
+                    i.cake_text?.toLowerCase().includes(query)
+                );
             return matchesStatus && matchesSearch;
         });
-    }, [orders, statusFilter, searchQuery]);
+    }, [groupedOrders, statusFilter, searchQuery]);
 
     const statusCounts = useMemo(() => {
-        const counts: Record<string, number> = { all: orders.length };
+        const counts: Record<string, number> = { all: groupedOrders.length };
         allStatuses.forEach((s) => {
-            counts[s] = orders.filter((o) => o.status === s).length;
+            counts[s] = groupedOrders.filter((g) => g.status === s).length;
         });
         return counts;
-    }, [orders]);
+    }, [groupedOrders]);
 
-    async function handleStatusChange(orderId: string, newStatus: OrderStatus) {
+    async function handleStatusChange(group: GroupedOrder, newStatus: OrderStatus) {
         setUpdating(true);
-        const success = await updateOrderStatus(orderId, newStatus);
+        const success = await updateGroupStatus(group.baseRef, newStatus);
         if (success) {
             setOrders((prev) =>
-                prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+                prev.map((o) =>
+                    o.order_ref.replace(/-\d+$/, '') === group.baseRef
+                        ? { ...o, status: newStatus }
+                        : o
+                )
             );
-            if (selectedOrder?.id === orderId) {
-                setSelectedOrder((prev) => prev ? { ...prev, status: newStatus } : null);
+            if (selectedGroup?.baseRef === group.baseRef) {
+                setSelectedGroup((prev) => prev ? { ...prev, status: newStatus, items: prev.items.map(i => ({ ...i, status: newStatus })) } : null);
             }
         }
         setUpdating(false);
     }
-
-    function copyOrderRef(ref: string) {
-        navigator.clipboard.writeText(ref);
-        setCopiedRef(true);
-        setTimeout(() => setCopiedRef(false), 2000);
-    }
-
-    // ─── Lasting ──────────────────────────────────────────────────────────────
 
     if (loading) {
         return (
@@ -149,259 +388,23 @@ export default function AdminOrders() {
         );
     }
 
-    // ─── Fullskjerm detaljvisning ─────────────────────────────────────────────
-
-    if (selectedOrder) {
-        const ActiveStatusIcon = statusIcons[selectedOrder.status];
+    if (selectedGroup) {
         return (
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-6"
-            >
-                {/* Tilbake-knapp + status */}
-                <div className="flex items-center justify-between">
-                    <button
-                        onClick={() => setSelectedOrder(null)}
-                        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
-                    >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Tilbake til liste
-                    </button>
-                    <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${statusColors[selectedOrder.status]}`}>
-                        <ActiveStatusIcon className="w-3.5 h-3.5" />
-                        {statusLabels[selectedOrder.status]}
-                    </span>
-                </div>
-
-                {/* Ordrehode */}
-                <div className="bg-card rounded-2xl border border-border/50 shadow-soft p-6">
-                    <div className="flex items-center gap-3 mb-1">
-                        <h1 className="font-serif text-2xl font-bold text-foreground">Bestilling</h1>
-                        <span className="font-mono text-lg text-primary font-bold">{selectedOrder.order_ref}</span>
-                        {selectedOrder.order_ref && (
-                            <button
-                                onClick={() => copyOrderRef(selectedOrder.order_ref)}
-                                className="text-muted-foreground hover:text-foreground transition-colors"
-                                title="Kopier referanse"
-                            >
-                                {copiedRef ? <CheckCheck className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                            </button>
-                        )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                        Bestilt {formatDate(selectedOrder.created_at)}
-                    </p>
-                    {selectedOrder.delivery_date && (
-                        <p className="text-sm font-medium text-primary mt-1 flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
-                            Leveres: {formatNorwegianDate(selectedOrder.delivery_date)}
-                        </p>
-                    )}
-                </div>
-
-                {/* To kolonner på desktop */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Venstre kolonne — Bestillingsdetaljer */}
-                    <div className="lg:col-span-2 space-y-5">
-                        {/* Bestillingsdetaljer */}
-                        <Section title="Bestillingsdetaljer">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                <DetailCard icon={Calendar} label="Anledning" value={selectedOrder.occasion} />
-                                <DetailCard icon={Cake} label="Pakke" value={selectedOrder.package_name || selectedOrder.product_type || '—'} />
-                                {selectedOrder.package_price != null && (
-                                    <DetailCard icon={CreditCard} label="Pris" value={`${selectedOrder.package_price.toLocaleString('nb-NO')} kr`} />
-                                )}
-                                {selectedOrder.quantity && (
-                                    <DetailCard icon={Hash} label="Antall" value={selectedOrder.quantity} />
-                                )}
-                                {selectedOrder.is_custom_design && (
-                                    <DetailCard icon={Sparkles} label="Design" value="Eget design" />
-                                )}
-                            </div>
-                        </Section>
-
-                        {/* Kaketekst */}
-                        {(selectedOrder.cake_name || selectedOrder.cake_text) && (
-                            <Section title="Kaketekst" icon={Cake}>
-                                <div className="space-y-4">
-                                    {selectedOrder.cake_name && (
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1.5">Navn på kaken</p>
-                                            <p className="text-base font-medium text-foreground bg-primary/5 rounded-xl px-4 py-3">
-                                                {selectedOrder.cake_name}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {selectedOrder.cake_text && (
-                                        <div>
-                                            <p className="text-xs text-muted-foreground mb-1.5">Tekst på kaken</p>
-                                            <p className="text-base font-medium text-foreground bg-primary/5 rounded-xl px-4 py-3 italic">
-                                                „{selectedOrder.cake_text}"
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </Section>
-                        )}
-
-                        {/* Beskrivelse */}
-                        {selectedOrder.description && (
-                            <Section title="Beskrivelse fra kunden" icon={FileText}>
-                                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                                    {selectedOrder.description}
-                                </p>
-                            </Section>
-                        )}
-
-                        {/* Idéer */}
-                        {selectedOrder.ideas && (
-                            <Section title="Idéer og ønsker" icon={MessageSquare}>
-                                <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                                    {selectedOrder.ideas}
-                                </p>
-                            </Section>
-                        )}
-
-                        {/* Spiselig bilde (betalt tillegg) */}
-                        <Section title="🎂 Spiselig bilde (+200 kr)" icon={ImageIcon}>
-                            {selectedOrder.edible_image_url ? (
-                                <a
-                                    href={selectedOrder.edible_image_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block w-full max-w-[200px] aspect-square rounded-xl overflow-hidden bg-muted hover:opacity-80 transition-opacity ring-2 ring-primary/30"
-                                >
-                                    <img src={selectedOrder.edible_image_url} alt="Spiselig bilde" className="w-full h-full object-cover" />
-                                </a>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-6 text-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
-                                    <ImageIcon className="w-8 h-8 text-muted-foreground/40 mb-2" />
-                                    <p className="text-sm text-muted-foreground">Ingen spiselig bilde lastet opp</p>
-                                </div>
-                            )}
-                        </Section>
-
-                        {/* Inspirasjonsbilder (gratis) */}
-                        <Section title={`🖼️ Inspirasjonsbilder (${(selectedOrder.image_urls || []).length})`} icon={ImageIcon}>
-                            {selectedOrder.image_urls && selectedOrder.image_urls.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {selectedOrder.image_urls.map((url, i) => (
-                                        <a
-                                            key={i}
-                                            href={url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="aspect-square rounded-xl overflow-hidden bg-muted hover:opacity-80 transition-opacity ring-1 ring-border/30"
-                                        >
-                                            <img src={url} alt={`Inspirasjon ${i + 1}`} className="w-full h-full object-cover" />
-                                        </a>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-6 text-center rounded-xl border-2 border-dashed border-border/50 bg-muted/20">
-                                    <ImageIcon className="w-8 h-8 text-muted-foreground/40 mb-2" />
-                                    <p className="text-sm text-muted-foreground">Ingen inspirasjonsbilder lastet opp</p>
-                                </div>
-                            )}
-                        </Section>
-
-                    </div>
-
-                    {/* Høyre kolonne — Kunde + Status */}
-                    <div className="space-y-5">
-                        {/* Kundeinformasjon */}
-                        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-                            <div className="px-5 py-3 bg-muted/30 border-b border-border/50">
-                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Kundeinformasjon</p>
-                            </div>
-                            <div className="p-5 space-y-4">
-                                {selectedOrder.customer_name && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <User className="w-6 h-6 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-foreground text-lg">{selectedOrder.customer_name}</p>
-                                            <p className="text-xs text-muted-foreground">Kunde</p>
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="space-y-2">
-                                    {selectedOrder.customer_email && (
-                                        <a
-                                            href={`mailto:${selectedOrder.customer_email}`}
-                                            className="flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition-colors"
-                                        >
-                                            <Mail className="w-5 h-5" />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-medium">Send e-post</p>
-                                                <p className="text-xs truncate opacity-80">{selectedOrder.customer_email}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                    {selectedOrder.customer_phone && (
-                                        <a
-                                            href={`tel:${selectedOrder.customer_phone}`}
-                                            className="flex items-center gap-3 px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl transition-colors"
-                                        >
-                                            <Phone className="w-5 h-5" />
-                                            <div>
-                                                <p className="text-sm font-medium">Ring kunde</p>
-                                                <p className="text-xs opacity-80">{selectedOrder.customer_phone}</p>
-                                            </div>
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Endre status */}
-                        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-                            <div className="px-5 py-3 bg-muted/30 border-b border-border/50">
-                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                    Endre status
-                                </p>
-                            </div>
-                            <div className="p-5">
-                                <div className="grid grid-cols-2 gap-2">
-                                    {allStatuses.map((status) => {
-                                        const Icon = statusIcons[status];
-                                        const isActive = selectedOrder.status === status;
-                                        return (
-                                            <button
-                                                key={status}
-                                                onClick={() => handleStatusChange(selectedOrder.id, status)}
-                                                disabled={isActive || updating}
-                                                className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                                    ? `${statusColors[status]} ring-2 ring-offset-2 ring-current`
-                                                    : 'bg-muted/30 border border-border/50 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-50'
-                                                    }`}
-                                            >
-                                                <Icon className="w-4 h-4" />
-                                                {statusLabels[status]}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
+            <GroupDetail
+                group={selectedGroup}
+                onBack={() => setSelectedGroup(null)}
+                onStatusChange={handleStatusChange}
+                updating={updating}
+            />
         );
     }
 
-    // ─── Ordreliste ───────────────────────────────────────────────────────────
-
     return (
         <div className="space-y-6">
-            {/* Overskrift */}
             <div>
                 <h1 className="font-serif text-3xl font-bold text-foreground">Bestillinger</h1>
                 <p className="text-muted-foreground mt-1">
-                    {orders.length} bestilling{orders.length !== 1 ? 'er' : ''} totalt
+                    {groupedOrders.length} bestilling{groupedOrders.length !== 1 ? 'er' : ''} totalt
                 </p>
             </div>
 
@@ -409,7 +412,7 @@ export default function AdminOrders() {
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                    placeholder="Søk etter referanse, kunde, produkt, tekst..."
+                    placeholder="Søk etter referanse, kunde, produkt..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 h-11 rounded-xl bg-card border-border/50"
@@ -418,7 +421,6 @@ export default function AdminOrders() {
                     <button
                         onClick={() => setSearchQuery('')}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        title="Tøm søk"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -432,9 +434,7 @@ export default function AdminOrders() {
                         key={status}
                         onClick={() => setStatusFilter(status)}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap ${statusFilter === status
-                            ? status === 'all'
-                                ? 'bg-foreground text-background'
-                                : statusColors[status]
+                            ? status === 'all' ? 'bg-foreground text-background' : statusColors[status]
                             : 'bg-card text-muted-foreground hover:bg-accent border border-border/50'
                             }`}
                     >
@@ -446,43 +446,46 @@ export default function AdminOrders() {
                 ))}
             </div>
 
-            {/* Antall resultater */}
             {(searchQuery || statusFilter !== 'all') && (
                 <p className="text-sm text-muted-foreground">
-                    Viser {filteredOrders.length} av {orders.length} bestillinger
+                    Viser {filteredGroups.length} av {groupedOrders.length} bestillinger
                 </p>
             )}
 
-            {/* Ordrekort */}
-            {filteredOrders.length === 0 ? (
+            {/* Gruppert ordreliste */}
+            {filteredGroups.length === 0 ? (
                 <div className="bg-card rounded-2xl border border-border/50 shadow-soft p-12 text-center">
                     <Filter className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground font-medium">Ingen bestillinger funnet</p>
-                    <p className="text-sm text-muted-foreground/70 mt-1">Prøv å endre søk eller filter</p>
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {filteredOrders.map((order, i) => {
-                        const StatusIcon = statusIcons[order.status];
+                    {filteredGroups.map((group, i) => {
+                        const StatusIcon = statusIcons[group.status];
                         return (
                             <motion.div
-                                key={order.id}
+                                key={group.baseRef}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: Math.min(i * 0.04, 0.5) }}
-                                onClick={() => setSelectedOrder(order)}
+                                onClick={() => setSelectedGroup(group)}
                                 className="bg-card rounded-2xl border border-border/50 shadow-soft hover:shadow-md hover:border-primary/30 transition-all duration-200 cursor-pointer group overflow-hidden"
                             >
                                 {/* Kort-topp */}
                                 <div className="flex items-center justify-between px-5 py-3 border-b border-border/30 bg-muted/20">
                                     <div className="flex items-center gap-3">
-                                        <span className="font-mono text-sm font-bold text-primary">{order.order_ref || '—'}</span>
-                                        <span className="text-xs text-muted-foreground">{formatRelativeDate(order.created_at)}</span>
+                                        <span className="font-mono text-sm font-bold text-primary">{group.baseRef}</span>
+                                        <span className="text-xs text-muted-foreground">{formatRelativeDate(group.created_at)}</span>
+                                        {group.items.length > 1 && (
+                                            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                                                {group.items.length} produkter
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                                        <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[group.status]}`}>
                                             <StatusIcon className="w-3 h-3" />
-                                            {statusLabels[order.status]}
+                                            {statusLabels[group.status]}
                                         </span>
                                         <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
@@ -493,106 +496,48 @@ export default function AdminOrders() {
                                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                                         <div className="flex-1 min-w-0">
                                             <h3 className="font-semibold text-foreground text-base truncate">
-                                                {order.customer_name || 'Ukjent kunde'}
+                                                {group.customer_name || 'Ukjent kunde'}
                                             </h3>
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                                                {order.customer_email && (
+                                                {group.customer_email && (
                                                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Mail className="w-3 h-3" />{order.customer_email}
+                                                        <Mail className="w-3 h-3" />{group.customer_email}
                                                     </span>
                                                 )}
-                                                {order.customer_phone && (
+                                                {group.customer_phone && (
                                                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Phone className="w-3 h-3" />{order.customer_phone}
+                                                        <Phone className="w-3 h-3" />{group.customer_phone}
                                                     </span>
                                                 )}
                                             </div>
-                                            {order.delivery_date && (
-                                                <p className="text-xs text-primary font-medium mt-1 flex items-center gap-1">
-                                                    <Calendar className="w-3 h-3" />
-                                                    Leveres: {new Date(order.delivery_date + 'T00:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
-                                                </p>
-                                            )}
+                                            {/* Produktliste-forhåndsvisning */}
+                                            <ul className="mt-2 space-y-0.5">
+                                                {group.items.map((item) => (
+                                                    <li key={item.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                        <Cake className="w-3 h-3 text-primary shrink-0" />
+                                                        <span className="truncate">{item.package_name || item.cake_name || '—'}</span>
+                                                        {item.delivery_date && (
+                                                            <span className="text-primary shrink-0">
+                                                                · {new Date(item.delivery_date + 'T00:00:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
+                                                            </span>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
-                                        <div className="flex flex-wrap gap-2 sm:flex-col sm:items-end sm:gap-1.5">
-                                            {order.occasion && (
-                                                <span className="flex items-center gap-1 text-xs font-medium text-foreground bg-muted/50 px-2 py-1 rounded-lg capitalize">
-                                                    <Calendar className="w-3 h-3 text-primary" />{order.occasion}
-                                                </span>
-                                            )}
-                                            {(order.package_name || order.product_type) && (
-                                                <span className="flex items-center gap-1 text-xs font-medium text-foreground bg-muted/50 px-2 py-1 rounded-lg">
-                                                    <Cake className="w-3 h-3 text-primary" />{order.package_name || order.product_type}
-                                                </span>
-                                            )}
-                                            {order.package_price != null && (
-                                                <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg">
-                                                    <CreditCard className="w-3 h-3" />{order.package_price.toLocaleString('nb-NO')} kr
-                                                </span>
-                                            )}
+                                        <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1.5">
+                                            <span className="flex items-center gap-1 text-sm font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg">
+                                                <CreditCard className="w-3.5 h-3.5" />
+                                                {group.total_price.toLocaleString('nb-NO')} kr
+                                            </span>
                                         </div>
                                     </div>
-
-                                    {(order.description || order.cake_text || order.cake_name) && (
-                                        <div className="mt-3 pt-3 border-t border-border/30 space-y-1">
-                                            {order.cake_text && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    <span className="font-medium text-foreground/80">Tekst på kake:</span> {order.cake_text}
-                                                </p>
-                                            )}
-                                            {order.cake_name && (
-                                                <p className="text-xs text-muted-foreground">
-                                                    <span className="font-medium text-foreground/80">Kakenavn:</span> {order.cake_name}
-                                                </p>
-                                            )}
-                                            {order.description && (
-                                                <p className="text-xs text-muted-foreground line-clamp-2">
-                                                    <span className="font-medium text-foreground/80">Beskrivelse:</span> {order.description}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {order.image_urls && order.image_urls.length > 0 && (
-                                        <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                                            <ImageIcon className="w-3 h-3" />
-                                            {order.image_urls.length} bilde{order.image_urls.length !== 1 ? 'r' : ''} vedlagt
-                                        </div>
-                                    )}
                                 </div>
                             </motion.div>
                         );
                     })}
                 </div>
             )}
-        </div>
-    );
-}
-
-// ─── Hjelpkomponenter ─────────────────────────────────────────────────────────
-
-function Section({ title, icon: Icon, children }: { title: string; icon?: React.ElementType; children: React.ReactNode }) {
-    return (
-        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-            <div className="px-5 py-3 bg-muted/30 border-b border-border/50">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                    {Icon && <Icon className="w-3.5 h-3.5" />}
-                    {title}
-                </p>
-            </div>
-            <div className="p-5">{children}</div>
-        </div>
-    );
-}
-
-function DetailCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
-    return (
-        <div className="bg-muted/30 rounded-xl p-3">
-            <div className="flex items-center gap-1.5 mb-1">
-                <Icon className="w-3 h-3 text-muted-foreground" />
-                <p className="text-xs text-muted-foreground">{label}</p>
-            </div>
-            <p className="text-sm font-medium text-foreground capitalize">{value || '—'}</p>
         </div>
     );
 }
