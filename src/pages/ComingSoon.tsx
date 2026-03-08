@@ -2,7 +2,7 @@
  * ComingSoon — Vises for alle besøkende når VITE_COMING_SOON=true.
  * Admin-ruter er alltid tilgjengelige uavhengig av denne siden.
  */
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const LAUNCH_DATE = new Date('2026-04-27T10:00:00');
 
