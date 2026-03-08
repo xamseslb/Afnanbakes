@@ -61,8 +61,11 @@ const MAX_IMAGE_COUNT = 5;
  * Returnerer offentlige URL-er for de opplastede bildene.
  */
 export async function uploadImages(images: File[]): Promise<string[]> {
-    console.log('[DEBUG uploadImages] Called with', images.length, 'images');
-    if (images.length === 0) { console.log('[DEBUG uploadImages] No images, returning []'); return []; }
+    console.log('[DEBUG uploadImages] Called with', images?.length ?? 0, 'images');
+    if (!images || images.length === 0) { return []; }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
     // Begrens antall bilder
     const filesToUpload = images.slice(0, MAX_IMAGE_COUNT);
@@ -82,29 +85,43 @@ export async function uploadImages(images: File[]): Promise<string[]> {
         }
 
         const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-        // Tving sikker filendelse (kun bilde-endelser)
         const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExt) ? fileExt : 'jpg';
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${safeExt}`;
         const filePath = `order-images/${fileName}`;
 
-        const { error } = await supabase.storage
-            .from('orders')
-            .upload(filePath, file, { contentType: file.type });
+        try {
+            // Bruk direkte fetch() i stedet for supabase.storage (unngår JS-klient-problemer)
+            const uploadResp = await fetch(
+                `${supabaseUrl}/storage/v1/object/orders/${filePath}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${anonKey}`,
+                        'apikey': anonKey,
+                        'Content-Type': file.type,
+                        'x-upsert': 'true',
+                    },
+                    body: file,
+                }
+            );
 
-        if (error) {
-            console.error('Bildeopplasting feilet:', error.message);
+            if (!uploadResp.ok) {
+                const errText = await uploadResp.text();
+                console.error(`Bildeopplasting feilet (${uploadResp.status}):`, errText);
+                continue;
+            }
+
+            // Bygg public URL direkte (ingen separate kall nødvendig)
+            const publicUrl = `${supabaseUrl}/storage/v1/object/public/orders/${filePath}`;
+            urls.push(publicUrl);
+            console.log('[DEBUG uploadImages] Lastet opp:', publicUrl);
+        } catch (err) {
+            console.error('Nettverksfeil ved bildeopplasting:', err);
             continue;
         }
-
-        const { data: urlData } = supabase.storage
-            .from('orders')
-            .getPublicUrl(filePath);
-
-        urls.push(urlData.publicUrl);
-        console.log('[DEBUG uploadImages] Uploaded:', urlData.publicUrl);
     }
 
-    console.log('[DEBUG uploadImages] Returning', urls.length, 'urls:', urls);
+    console.log('[DEBUG uploadImages] Returnerer', urls.length, 'URLer');
     return urls;
 }
 
