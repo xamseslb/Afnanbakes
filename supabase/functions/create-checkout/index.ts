@@ -93,6 +93,8 @@ interface LineItem {
     description: string;
     deliveryDate?: string;
     cakeText?: string;
+    imageUrls?: string[];       // Inspirasjonsbilder for dette produktet
+    edibleImageUrl?: string;   // Spiselig bilde for dette produktet
 }
 
 /** Flerbestilling (nytt format — multiItem: true) */
@@ -162,7 +164,8 @@ serve(async (req: Request) => {
                 description: item.description,
                 cake_text: item.cakeText || '',
                 delivery_date: item.deliveryDate || null,
-                image_urls: data.imageUrls || [],
+                image_urls: item.imageUrls || [],
+                edible_image_url: item.edibleImageUrl || null,
                 status: 'pending_payment',
                 is_custom_design: false,
                 occasion: '',

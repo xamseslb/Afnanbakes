@@ -336,27 +336,34 @@ export async function createMultiCheckoutSession(
 
         const cakeTexts = drafts.map((d) => d.cakeText).filter(Boolean).join(' / ');
 
-        // 3. Supabase Edge Function – enkelt-item-bane (mest robust)
+        // 3. Supabase Edge Function – multiItem-bane (ett linjeelement per produkt)
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
         const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
+        // Bygg linjeelementer med per-draft bildeinformasjon
+        const lineItems = drafts.map((draft) => ({
+            name: draft.packageName,
+            price: draft.totalPrice,
+            description: [
+                draft.flavorLabel ? `Smak: ${draft.flavorLabel}` : '',
+                draft.fillingLabel ? `Fyll: ${draft.fillingLabel}` : '',
+                draft.sizeSummary || '',
+                !draft.isCake ? `${draft.quantity} stk` : '',
+                draft.withPhoto ? 'Med spiselig bilde (+200 kr)' : '',
+            ].filter(Boolean).join(' · ') || draft.packageName,
+            deliveryDate: draft.delivery,
+            cakeText: draft.cakeText,
+            imageUrls: draft.imageUrls || [],          // Inspirasjonsbilder per produkt
+            edibleImageUrl: draft.edibleImageUrl || '', // Spiselig bilde per produkt
+        }));
+
         const payload = {
+            multiItem: true,
             customerName: contact.customerName,
             customerEmail: contact.customerEmail,
             customerPhone: contact.customerPhone,
-            occasion: '',
-            productType: '',
-            packageName: packageLabel,
-            packagePrice: totalPrice,
-            quantity: drafts.length === 1 ? String(drafts[0].quantity) : '1',
-            description: combinedDescription,
-            ideas: '',
-            cakeName: packageLabel,
-            cakeText: cakeTexts,
-            deliveryDate: primaryDeliveryDate,
-            imageUrls: allImageUrls,
-            isCustomDesign: false,
-            // Server-side prisberegning (nøyaktig for enkeltvarer)
+            lineItems,
+
             productId: drafts.length === 1 ? drafts[0].productId : undefined,
             sizeId: drafts.length === 1 ? drafts[0].sizeId : undefined,
             withPhoto: drafts.length === 1 ? drafts[0].withPhoto : undefined,

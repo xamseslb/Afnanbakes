@@ -63,6 +63,8 @@ export interface OrderDraft {
   images: File[];
   /** Forhåndsopplastede bilde-URL-er (kan serialiseres til sessionStorage) */
   imageUrls: string[];
+  /** URL til det betalte spiselige bildet (separat fra inspirasjonsbilder) */
+  edibleImageUrl?: string | null;
   /** Produkt-ID for server-side prisberegning */
   productId?: number;
   /** Størrelses-ID (f.eks. 'small', 'medium') for server-side prisberegning */

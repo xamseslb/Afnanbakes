@@ -201,15 +201,19 @@ export default function ProductDetailPage() {
         if (!deliveryDate || !product) return;
 
         // Last opp bilder umiddelbart slik at URL-ene overlever sessionStorage
-        const allFiles = withPhoto && photoImage ? [photoImage, ...images] : images;
+        // Edible bilde og inspirasjonsbilder lastes opp SEPARAT
+        const edibleFile = withPhoto && photoImage ? photoImage : null;
+        const inspirationFiles = withPhoto ? images : images; // inspirasjonsbilder
+
+        let edibleImageUrl: string | null = null;
         let uploadedUrls: string[] = [];
-        if (allFiles.length > 0) {
-            try {
-                uploadedUrls = await uploadImages(allFiles);
-            } catch (err) {
-                console.error('Bildeopplasting feilet:', err);
-            }
-        }
+
+        const [edibleResults, inspirationResults] = await Promise.all([
+            edibleFile ? uploadImages([edibleFile]) : Promise.resolve([]),
+            inspirationFiles.length > 0 ? uploadImages(inspirationFiles) : Promise.resolve([]),
+        ]);
+        edibleImageUrl = edibleResults[0] ?? null;
+        uploadedUrls = inspirationResults;
 
         const draft: OrderDraft = {
             id: crypto.randomUUID(),
@@ -232,7 +236,8 @@ export default function ProductDetailPage() {
                 : `${product.name} \u00d7 ${quantity} stk`,
             packagePrice: totalPrice,
             images: [],           // File-objekter trengs ikke lenger
-            imageUrls: uploadedUrls, // Forhåndsopplastede URL-er
+            imageUrls: uploadedUrls, // Inspirasjonsbilder URL-er
+            edibleImageUrl,       // Spiselig bilde URL (separat)
             productId: product.id,
             sizeId: isCake ? selectedSize.id : undefined,
         };
