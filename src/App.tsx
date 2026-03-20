@@ -28,9 +28,8 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CustomOrderPage from './pages/CustomOrderPage';
 import ComingSoon from './pages/ComingSoon';
 
-/** Runtime-sjekk: localhost ser full side, afnanbakes.com ser Coming Soon */
-const COMING_SOON = typeof window !== 'undefined'
-  && window.location.hostname === 'afnanbakes.com';
+/** Runtime-sjekk for Coming Soon midlertidig deaktivert for testing */
+const COMING_SOON = false; // typeof window !== 'undefined' && window.location.hostname === 'afnanbakes.com';
 
 /** React Query klient for datahenting */
 const queryClient = new QueryClient();
